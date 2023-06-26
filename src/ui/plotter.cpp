@@ -1,7 +1,9 @@
 #include "ui/plotter.h"
 
-#include <algorithm>
 #include <ranges>
+
+#include "ui/axis.h"
+#include "ui/series.h"
 
 namespace logviewer
 {
@@ -51,11 +53,11 @@ qsizetype Plotter::create_series(const QString &name)
   auto id = m_chart->series().size();
 
   auto series = new Series;
+  m_chart->addSeries(series);
+
   series->setName(name);
   series->attachAxis(m_x_axis);
   series->attachAxis(m_y_axis);
-
-  m_chart->addSeries(series);
 
   return id;
 }

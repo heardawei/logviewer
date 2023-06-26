@@ -1,13 +1,8 @@
 #pragma once
 
-#include <unordered_map>
-#include <vector>
-
-#include <QtCharts>
-#include <QtWidgets>
+#include <QChartView>
 
 #include "ui/axis.h"
-#include "ui/series.h"
 
 namespace logviewer
 {
@@ -32,6 +27,5 @@ class Plotter : public QChartView
   QChart *m_chart{};
   Axis *m_x_axis{};
   Axis *m_y_axis{};
-  std::vector<Series *> m_series;
 };
 }  // namespace logviewer

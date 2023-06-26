@@ -2,7 +2,6 @@
 
 #include <ranges>
 
-#include "axis.h"
 #include "util/algo_util.h"
 
 namespace logviewer
