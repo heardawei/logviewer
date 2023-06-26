@@ -110,4 +110,5 @@ bool Plotter::append(qsizetype series_id, const QList<QPointF> &pts)
   return true;
 }
 
+void Plotter::clear() { m_chart->removeAllSeries(); }
 }  // namespace logviewer

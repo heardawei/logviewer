@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QValueAxis>
+#include <QtCharts/QValueAxis>
 
 namespace logviewer
 {

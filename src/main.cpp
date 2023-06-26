@@ -3,48 +3,28 @@
 
 #include <random>
 
-#include <QApplication>
-#include <QChart>
-#include <QChartView>
-#include <QDateTime>
-#include <QMainWindow>
-#include <QScatterSeries>
-#include <QTimer>
-#include <QValueAxis>
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
+#include <QtCharts/QScatterSeries>
+#include <QtCharts/QValueAxis>
+#include <QtCore/QDateTime>
+#include <QtCore/QTimer>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMainWindow>
 
-#include "ui/plotter.h"
+#include "ui/mainwindow.h"
 
 QT_USE_NAMESPACE
 
 int main(int argc, char *argv[])
 {
   QApplication a(argc, argv);
+  a.setOrganizationName("align_algo_alibaba_inc");
+  a.setApplicationName("logviewer");
 
-  auto plotter = new logviewer::Plotter;
-  auto series = plotter->create_series("series 1");
-
-  QMainWindow window;
-  window.setCentralWidget(plotter);
-  window.resize(400, 300);
+  logviewer::MainWindow window;
+  window.resize(1024, 768);
   window.show();
-
-  std::random_device r;
-  std::default_random_engine e(r());
-  std::uniform_real_distribution<qreal> u(0, 20);
-
-  QTimer *timer = new QTimer;
-  timer->connect(timer,
-                 &QTimer::timeout,
-                 timer,
-                 [=, &u, &e]()
-                 {
-                   static auto minsec = QDateTime::currentSecsSinceEpoch();
-                   auto sec = QDateTime::currentSecsSinceEpoch();
-                   auto y = u(e);
-                   plotter->append(series, static_cast<double>(sec), y);
-                   qDebug() << sec << " " << y;
-                 });
-  timer->start(1000);
 
   return a.exec();
 }

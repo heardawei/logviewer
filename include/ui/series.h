@@ -1,10 +1,11 @@
 #pragma once
 
-#include <QScatterSeries>
+#include <QtCharts/QScatterSeries>
+#include <QtCharts/QSplineSeries>
 
 namespace logviewer
 {
-class Series : public QScatterSeries
+class Series : public QSplineSeries
 {
   Q_OBJECT
  public:

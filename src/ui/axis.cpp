@@ -1,5 +1,6 @@
 #include "ui/axis.h"
 
+#include <format>
 #include <ranges>
 
 #include "util/algo_util.h"
@@ -29,12 +30,15 @@ void Axis::update_range(const QList<qreal>& vals)
   }
 
   const auto [min, max] = std::ranges::minmax_element(vals);
-
-  if (AlgoUtil::update_min_max(*min, m_min, m_max) ||
-      AlgoUtil::update_min_max(*max, m_min, m_max))
+  if (AlgoUtil::update_min_max(*min, m_min, m_max))
   {
-    setRange(m_min, m_max);
+    setRange(std::floor(m_min - 1), std::ceil(m_max + 1));
   }
+  if (AlgoUtil::update_min_max(*max, m_min, m_max))
+  {
+    setRange(std::floor(m_min - 1), std::ceil(m_max + 1));
+  }
+  qDebug() << std::format("{:.2f} -- {:.2f}", m_min, m_max);
 }
 
 }  // namespace logviewer

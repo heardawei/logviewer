@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QChartView>
+#include <QtCharts/QChartView>
 
 #include "ui/axis.h"
 
@@ -16,12 +16,14 @@ class Plotter : public QChartView
 
  signals:
 
- public:
+ public slots:
   qsizetype create_series(const QString &name);
   qsizetype create_series(const QString &name, const QList<QPointF> &pts);
   bool append(qsizetype series_id, qreal x, qreal y);
   bool append(qsizetype series_id, const QPointF &pt);
   bool append(qsizetype series_id, const QList<QPointF> &pts);
+
+  void clear();
 
  protected:
   QChart *m_chart{};
