@@ -45,8 +45,6 @@ int main(int argc, char *argv[])
 
   a.connect(log, &Log::parse_finished, w, parse_finished);
   a.connect(w, &MainWindow::open_log, log, &Log::parse);
-  a.connect(&a, &QApplication::aboutToQuit, log, &QObject::deleteLater);
-  a.connect(&a, &QApplication::aboutToQuit, w, &QObject::deleteLater);
 
   w->resize(1024, 768);
   w->show();
