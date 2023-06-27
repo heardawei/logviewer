@@ -102,43 +102,66 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow() {}
 
-void MainWindow::set_open_log_cb(OpenLogCallback cb)
+void MainWindow::set_t_bg_x_points(const QList<QPointF> &pts)
 {
-  m_open_log_cb = std::move(cb);
+  if (pts.empty())
+  {
+    return;
+  }
+  m_plotter1->create_series("timestamp-bg.x", pts);
 }
 
-void MainWindow::set_t_gb_x_points(const QList<QPointF> &pts)
+void MainWindow::set_t_bg_y_points(const QList<QPointF> &pts)
 {
-  m_plotter1->create_series("timestamp-gb.x", pts);
+  if (pts.empty())
+  {
+    return;
+  }
+  m_plotter1->create_series("timestamp-bg.y", pts);
 }
 
-void MainWindow::set_t_gb_y_points(const QList<QPointF> &pts)
+void MainWindow::set_t_bg_z_points(const QList<QPointF> &pts)
 {
-  m_plotter1->create_series("timestamp-gb.y", pts);
-}
-
-void MainWindow::set_t_gb_z_points(const QList<QPointF> &pts)
-{
-  m_plotter1->create_series("timestamp-gb.z", pts);
+  if (pts.empty())
+  {
+    return;
+  }
+  m_plotter1->create_series("timestamp-bg.z", pts);
 }
 
 void MainWindow::set_t_ba_x_points(const QList<QPointF> &pts)
 {
+  if (pts.empty())
+  {
+    return;
+  }
   m_plotter1->create_series("timestamp-ba.x", pts);
 }
 
 void MainWindow::set_t_ba_y_points(const QList<QPointF> &pts)
 {
+  if (pts.empty())
+  {
+    return;
+  }
   m_plotter1->create_series("timestamp-ba.y", pts);
 }
 
 void MainWindow::set_t_ba_z_points(const QList<QPointF> &pts)
 {
+  if (pts.empty())
+  {
+    return;
+  }
   m_plotter1->create_series("timestamp-ba.z", pts);
 }
 
 void MainWindow::set_t_px_py_points(const QList<QPointF> &pts)
 {
+  if (pts.empty())
+  {
+    return;
+  }
   m_plotter2->create_series("p.x-p.y", pts);
 }
 
@@ -204,13 +227,7 @@ void MainWindow::reload_file(const QString &filename)
   // 窗口标题
   setWindowFilePath(filename);
 
-  if (!m_open_log_cb)
-  {
-    qInfo() << "没有注册读日志功能";
-    return;
-  }
-
-  m_open_log_cb(filename);
+  emit open_log(filename);
 }
 
 void MainWindow::generate_samples()
@@ -233,9 +250,9 @@ void MainWindow::generate_plotter_samples()
 
   constexpr auto samples = 100;
 
-  QList<QPointF> samples_t_gb_x;
-  QList<QPointF> samples_t_gb_y;
-  QList<QPointF> samples_t_gb_z;
+  QList<QPointF> samples_t_bg_x;
+  QList<QPointF> samples_t_bg_y;
+  QList<QPointF> samples_t_bg_z;
   QList<QPointF> samples_t_ba_x;
   QList<QPointF> samples_t_ba_y;
   QList<QPointF> samples_t_ba_z;
@@ -244,7 +261,7 @@ void MainWindow::generate_plotter_samples()
 
   std::ranges::transform(std::views::iota(base_time),
                          std::views::iota(0, samples),
-                         std::back_inserter(samples_t_gb_x),
+                         std::back_inserter(samples_t_bg_x),
                          [&](qint64 t, int)
                          {
                            std::uniform_real_distribution<qreal> u(0, 50);
@@ -253,7 +270,7 @@ void MainWindow::generate_plotter_samples()
 
   std::ranges::transform(std::views::iota(base_time),
                          std::views::iota(0, samples),
-                         std::back_inserter(samples_t_gb_y),
+                         std::back_inserter(samples_t_bg_y),
                          [&](qint64 t, int)
                          {
                            std::uniform_real_distribution<qreal> u(40, 100);
@@ -262,7 +279,7 @@ void MainWindow::generate_plotter_samples()
 
   std::ranges::transform(std::views::iota(base_time),
                          std::views::iota(0, samples),
-                         std::back_inserter(samples_t_gb_z),
+                         std::back_inserter(samples_t_bg_z),
                          [&](qint64 t, int)
                          {
                            std::uniform_real_distribution<qreal> u(90, 150);
@@ -296,9 +313,9 @@ void MainWindow::generate_plotter_samples()
                            return QPointF(static_cast<qreal>(t), u(e));
                          });
 
-  m_plotter1->create_series("timestamp-gb.x", samples_t_gb_x);
-  m_plotter1->create_series("timestamp-gb.y", samples_t_gb_y);
-  m_plotter1->create_series("timestamp-gb.z", samples_t_gb_z);
+  m_plotter1->create_series("timestamp-bg.x", samples_t_bg_x);
+  m_plotter1->create_series("timestamp-bg.y", samples_t_bg_y);
+  m_plotter1->create_series("timestamp-bg.z", samples_t_bg_z);
   m_plotter1->create_series("timestamp-ba.x", samples_t_ba_x);
   m_plotter1->create_series("timestamp-ba.y", samples_t_ba_y);
   m_plotter1->create_series("timestamp-ba.z", samples_t_ba_z);

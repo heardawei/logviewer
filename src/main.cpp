@@ -12,6 +12,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 
+#include "log/log.h"
 #include "ui/mainwindow.h"
 
 QT_USE_NAMESPACE
@@ -22,9 +23,32 @@ int main(int argc, char *argv[])
   a.setOrganizationName("align_algo_alibaba_inc");
   a.setApplicationName("logviewer");
 
-  logviewer::MainWindow window;
-  window.resize(1024, 768);
-  window.show();
+  using namespace logviewer;
+
+  auto w = new MainWindow;
+  auto log = new Log;
+
+  auto parse_finished = [=](bool success)
+  {
+    if (!success)
+    {
+      return;
+    }
+    w->set_t_bg_x_points(log->t_bg_x_points());
+    w->set_t_bg_y_points(log->t_bg_y_points());
+    w->set_t_bg_z_points(log->t_bg_z_points());
+    w->set_t_ba_x_points(log->t_ba_x_points());
+    w->set_t_ba_y_points(log->t_ba_y_points());
+    w->set_t_ba_z_points(log->t_ba_z_points());
+  };
+
+  a.connect(log, &Log::parse_finished, w, parse_finished);
+  a.connect(w, &MainWindow::open_log, log, &Log::parse);
+  a.connect(&a, &QApplication::aboutToQuit, log, &QObject::deleteLater);
+  a.connect(&a, &QApplication::aboutToQuit, w, &QObject::deleteLater);
+
+  w->resize(1024, 768);
+  w->show();
 
   return a.exec();
 }

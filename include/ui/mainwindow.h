@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtCore/QPointF>
 #include <QtWidgets/QMainWindow>
 
 #include "ui/image.h"
@@ -9,16 +10,18 @@ namespace logviewer
 {
 class MainWindow : public QMainWindow
 {
+  Q_OBJECT
  public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
+signals:
+  void open_log(const QString &filename);
+
  public slots:
-  using OpenLogCallback = std::function<void(const QString &)>;
-  void set_open_log_cb(OpenLogCallback cb);
-  void set_t_gb_x_points(const QList<QPointF> &pts);
-  void set_t_gb_y_points(const QList<QPointF> &pts);
-  void set_t_gb_z_points(const QList<QPointF> &pts);
+  void set_t_bg_x_points(const QList<QPointF> &pts);
+  void set_t_bg_y_points(const QList<QPointF> &pts);
+  void set_t_bg_z_points(const QList<QPointF> &pts);
   void set_t_ba_x_points(const QList<QPointF> &pts);
   void set_t_ba_y_points(const QList<QPointF> &pts);
   void set_t_ba_z_points(const QList<QPointF> &pts);
@@ -41,9 +44,6 @@ class MainWindow : public QMainWindow
   Image *m_img2{};
   Plotter *m_plotter1{};
   Plotter *m_plotter2{};
-
- private:
-  OpenLogCallback m_open_log_cb;
 };
 
 }  // namespace logviewer

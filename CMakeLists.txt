@@ -6,13 +6,13 @@ project(logviewer LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 
-if(NOT DEFINED INSTALL_EXAMPLESDIR)
-    set(INSTALL_EXAMPLESDIR "examples")
+if(NOT DEFINED INSTALL_DIR)
+    set(INSTALL_DIR "D:/install")
 endif()
 
-set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/charts/logviewer")
+set(INSTALL_DIR "${INSTALL_DIR}/logviewer")
 
-find_package(Qt6 REQUIRED COMPONENTS Charts Core Gui)
+find_package(Qt6 REQUIRED COMPONENTS Charts Core Gui Concurrent)
 
 set(INC_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/"
@@ -48,12 +48,13 @@ target_link_libraries(logviewer PUBLIC
     Qt::Charts
     Qt::Core
     Qt::Gui
+    Qt::Concurrent
 )
 
 target_compile_features(logviewer PRIVATE cxx_std_23)
 
 install(TARGETS logviewer
-    RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
-    BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
-    LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
+    RUNTIME DESTINATION "${INSTALL_DIR}"
+    BUNDLE DESTINATION "${INSTALL_DIR}"
+    LIBRARY DESTINATION "${INSTALL_DIR}"
 )
