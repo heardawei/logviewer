@@ -120,7 +120,8 @@ class IMUInputData : public RealListData
  public:
   enum class Index : qsizetype
   {
-    TIME,
+    TIME1,
+    TIME2,
     GYRO_X,
     GYRO_Y,
     GYRO_Z,
@@ -145,7 +146,8 @@ class OdomInputData : public RealListData
  public:
   enum class Index : qsizetype
   {
-    TIME,
+    TIME1,
+    TIME2,
     VELO_X,
     VELO_Y,
     VELO_Z,
@@ -168,7 +170,8 @@ class CameraInputData : public RealListData
  public:
   enum class Index : qsizetype
   {
-    TIME,
+    TIME1,
+    TIME2,
     LOC_X,
     LOC_Y,
     LOC_Z,
@@ -268,7 +271,7 @@ class Log : public QObject
   QList<QPointF> t_ba_x_points() const;
   QList<QPointF> t_ba_y_points() const;
   QList<QPointF> t_ba_z_points() const;
-  QList<QPointF> t_px_py_points() const;
+  QList<QPointF> px_py_points() const;
 
  signals:
   void parse_finished(bool);

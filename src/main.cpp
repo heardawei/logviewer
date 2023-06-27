@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
     w->set_t_ba_x_points(log->t_ba_x_points());
     w->set_t_ba_y_points(log->t_ba_y_points());
     w->set_t_ba_z_points(log->t_ba_z_points());
+    w->set_t_px_py_points(log->px_py_points());
   };
 
   a.connect(log, &Log::parse_finished, w, parse_finished);

@@ -108,7 +108,8 @@ void MainWindow::set_t_bg_x_points(const QList<QPointF> &pts)
   {
     return;
   }
-  m_plotter1->create_series("timestamp-bg.x", pts);
+  m_plotter1->create_series("t-bg.x", pts);
+  qDebug() << "t-bg.x: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_bg_y_points(const QList<QPointF> &pts)
@@ -117,7 +118,8 @@ void MainWindow::set_t_bg_y_points(const QList<QPointF> &pts)
   {
     return;
   }
-  m_plotter1->create_series("timestamp-bg.y", pts);
+  m_plotter1->create_series("t-bg.y", pts);
+  qDebug() << "t-bg.y: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_bg_z_points(const QList<QPointF> &pts)
@@ -126,7 +128,8 @@ void MainWindow::set_t_bg_z_points(const QList<QPointF> &pts)
   {
     return;
   }
-  m_plotter1->create_series("timestamp-bg.z", pts);
+  m_plotter1->create_series("t-bg.z", pts);
+  qDebug() << "t-bg.z: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_ba_x_points(const QList<QPointF> &pts)
@@ -135,7 +138,8 @@ void MainWindow::set_t_ba_x_points(const QList<QPointF> &pts)
   {
     return;
   }
-  m_plotter1->create_series("timestamp-ba.x", pts);
+  m_plotter1->create_series("t-ba.x", pts);
+  qDebug() << "t-ba.x: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_ba_y_points(const QList<QPointF> &pts)
@@ -144,7 +148,8 @@ void MainWindow::set_t_ba_y_points(const QList<QPointF> &pts)
   {
     return;
   }
-  m_plotter1->create_series("timestamp-ba.y", pts);
+  m_plotter1->create_series("t-ba.y", pts);
+  qDebug() << "t-ba.y: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_ba_z_points(const QList<QPointF> &pts)
@@ -153,7 +158,8 @@ void MainWindow::set_t_ba_z_points(const QList<QPointF> &pts)
   {
     return;
   }
-  m_plotter1->create_series("timestamp-ba.z", pts);
+  m_plotter1->create_series("t-ba.z", pts);
+  qDebug() << "t-ba.z: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_px_py_points(const QList<QPointF> &pts)
@@ -163,6 +169,7 @@ void MainWindow::set_t_px_py_points(const QList<QPointF> &pts)
     return;
   }
   m_plotter2->create_series("p.x-p.y", pts);
+  qDebug() << "p.x-p.y: " << pts.size() << "points";
 }
 
 void MainWindow::on_open_file_clicked()
@@ -313,12 +320,12 @@ void MainWindow::generate_plotter_samples()
                            return QPointF(static_cast<qreal>(t), u(e));
                          });
 
-  m_plotter1->create_series("timestamp-bg.x", samples_t_bg_x);
-  m_plotter1->create_series("timestamp-bg.y", samples_t_bg_y);
-  m_plotter1->create_series("timestamp-bg.z", samples_t_bg_z);
-  m_plotter1->create_series("timestamp-ba.x", samples_t_ba_x);
-  m_plotter1->create_series("timestamp-ba.y", samples_t_ba_y);
-  m_plotter1->create_series("timestamp-ba.z", samples_t_ba_z);
+  m_plotter1->create_series("t-bg.x", samples_t_bg_x);
+  m_plotter1->create_series("t-bg.y", samples_t_bg_y);
+  m_plotter1->create_series("t-bg.z", samples_t_bg_z);
+  m_plotter1->create_series("t-ba.x", samples_t_ba_x);
+  m_plotter1->create_series("t-ba.y", samples_t_ba_y);
+  m_plotter1->create_series("t-ba.z", samples_t_ba_z);
 }
 
 void MainWindow::generate_traj_samples()

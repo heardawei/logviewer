@@ -34,7 +34,7 @@ Plotter::Plotter(QWidget *parent)
   // m_chart->setTitle("Example");
 
   // 添加动画效果
-  m_chart->setAnimationOptions(QChart::SeriesAnimations);
+  // m_chart->setAnimationOptions(QChart::SeriesAnimations);
 
   // 为图表添加x轴、y轴
   m_chart->addAxis(m_x_axis, Qt::AlignBottom);
@@ -56,6 +56,7 @@ qsizetype Plotter::create_series(const QString &name)
   m_chart->addSeries(series);
 
   series->setName(name);
+  series->setUseOpenGL(true);
   series->attachAxis(m_x_axis);
   series->attachAxis(m_y_axis);
 

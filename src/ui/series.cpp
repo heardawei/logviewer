@@ -32,7 +32,7 @@ bool compare_y(const QPointF &a, const QPointF &b) { return a.y() < b.y(); }
 }  // namespace
 
 Series::Series(QObject *parent)
-    : QSplineSeries(parent)
+    : QLineSeries(parent)
 //    : QScatterSeries(parent)
 {
   //  clear();

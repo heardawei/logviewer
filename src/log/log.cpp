@@ -280,17 +280,18 @@ void Log::parse(const QString &filename)
       parse_line(line);
     }
 
+    qDebug() << "parsed " << m_records.size() << " rows";
+
     return true;
   };
 
   auto future = QtConcurrent::run(parse_impl, filename);
   auto watcher = new QFutureWatcher<bool>;
-  watcher->setFuture(future);
-
   connect(watcher,
           &QFutureWatcher<bool>::finished,
           this,
           [=]() { emit parse_finished(watcher->result()); });
+  watcher->setFuture(future);
 }
 
 QList<QPointF> Log::t_bg_x_points() const
@@ -302,7 +303,7 @@ QList<QPointF> Log::t_bg_x_points() const
     return QPointF(time, bg_x);
   };
   return std::views::all(m_records) | std::views::transform(proj_to_t_bg_x) |
-         std::ranges::to<QList<QPointF>>();
+         std::views::stride(100) | std::ranges::to<QList<QPointF>>();
 }
 
 QList<QPointF> Log::t_bg_y_points() const
@@ -314,7 +315,7 @@ QList<QPointF> Log::t_bg_y_points() const
     return QPointF(time, bg_x);
   };
   return std::views::all(m_records) | std::views::transform(proj_to_t_bg_x) |
-         std::ranges::to<QList<QPointF>>();
+         std::views::stride(100) | std::ranges::to<QList<QPointF>>();
 }
 
 QList<QPointF> Log::t_bg_z_points() const
@@ -326,7 +327,7 @@ QList<QPointF> Log::t_bg_z_points() const
     return QPointF(time, bg_z);
   };
   return std::views::all(m_records) | std::views::transform(proj_to_t_bg_z) |
-         std::ranges::to<QList<QPointF>>();
+         std::views::stride(100) | std::ranges::to<QList<QPointF>>();
 }
 
 QList<QPointF> Log::t_ba_x_points() const
@@ -338,7 +339,7 @@ QList<QPointF> Log::t_ba_x_points() const
     return QPointF(time, ba_x);
   };
   return std::views::all(m_records) | std::views::transform(proj_to_t_ba_x) |
-         std::ranges::to<QList<QPointF>>();
+         std::views::stride(100) | std::ranges::to<QList<QPointF>>();
 }
 
 QList<QPointF> Log::t_ba_y_points() const
@@ -350,7 +351,7 @@ QList<QPointF> Log::t_ba_y_points() const
     return QPointF(time, ba_y);
   };
   return std::views::all(m_records) | std::views::transform(proj_to_t_ba_y) |
-         std::ranges::to<QList<QPointF>>();
+         std::views::stride(100) | std::ranges::to<QList<QPointF>>();
 }
 
 QList<QPointF> Log::t_ba_z_points() const
@@ -362,10 +363,10 @@ QList<QPointF> Log::t_ba_z_points() const
     return QPointF(time, ba_z);
   };
   return std::views::all(m_records) | std::views::transform(proj_to_t_ba_z) |
-         std::ranges::to<QList<QPointF>>();
+         std::views::stride(100) | std::ranges::to<QList<QPointF>>();
 }
 
-QList<QPointF> Log::t_px_py_points() const
+QList<QPointF> Log::px_py_points() const
 {
   auto proj_to_t_px_py = [](const QSharedPointer<BaseRecord> &rec)
   {
@@ -374,7 +375,7 @@ QList<QPointF> Log::t_px_py_points() const
     return QPointF(time, px_py);
   };
   return std::views::all(m_records) | std::views::transform(proj_to_t_px_py) |
-         std::ranges::to<QList<QPointF>>();
+         std::views::stride(100) | std::ranges::to<QList<QPointF>>();
 }
 
 bool Log::parse_line(const QString &line)
