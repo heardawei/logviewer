@@ -17,6 +17,16 @@
 
 namespace logviewer
 {
+namespace
+{
+void SetImage(Image *img, const QString &filename)
+{
+  img->setPixmap(QPixmap(filename));
+  img->setScaledContents(true);
+  img->setSizePolicy(QSizePolicy::Policy::Ignored,
+                     QSizePolicy::Policy::Ignored);
+}
+}  // namespace
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -27,27 +37,37 @@ MainWindow::MainWindow(QWidget *parent)
 {
   auto test_pb = new QPushButton("测试数据");
   auto open_log_pb = new QPushButton("打开日志文件");
+  auto open_img1_pb = new QPushButton("打开图片1");
+  auto open_img2_pb = new QPushButton("打开图片2");
   auto refresh_pb = new QPushButton("刷新");
 
   auto header_layout = new QHBoxLayout;
   header_layout->addWidget(test_pb);
   header_layout->addWidget(open_log_pb);
+  header_layout->addWidget(open_img1_pb);
+  header_layout->addWidget(open_img2_pb);
   header_layout->addWidget(refresh_pb);
   header_layout->addStretch();
 
+  auto header = new QWidget;
+  header->setLayout(header_layout);
+
   auto body_layout = new QGridLayout;
-  body_layout->addWidget(m_img1, 0, 0 /* , Qt::AlignCenter */);
-  body_layout->addWidget(m_img2, 0, 1 /* , Qt::AlignCenter */);
-  body_layout->addWidget(m_plotter1, 1, 0);
-  body_layout->addWidget(m_plotter2, 1, 1);
+  body_layout->addWidget(m_img1, 0, 0, Qt::AlignCenter);
+  body_layout->addWidget(m_img2, 0, 1, Qt::AlignCenter);
+  body_layout->addWidget(m_plotter1, 1, 0, Qt::AlignCenter);
+  body_layout->addWidget(m_plotter2, 1, 1, Qt::AlignCenter);
   body_layout->setRowStretch(0, 50);
   body_layout->setRowStretch(1, 50);
   body_layout->setColumnStretch(0, 50);
   body_layout->setColumnStretch(1, 50);
 
+  auto body = new QWidget;
+  body->setLayout(body_layout);
+
   auto central_layout = new QVBoxLayout;
-  central_layout->addLayout(header_layout);
-  central_layout->addLayout(body_layout);
+  central_layout->addWidget(header);
+  central_layout->addWidget(body);
 
   auto central = new QWidget;
   central->setLayout(central_layout);
@@ -68,6 +88,16 @@ MainWindow::MainWindow(QWidget *parent)
           &QPushButton::clicked,
           this,
           &MainWindow::on_open_file_clicked);
+
+  connect(open_img1_pb,
+          &QPushButton::clicked,
+          this,
+          &MainWindow::on_open_img1_clicked);
+
+  connect(open_img2_pb,
+          &QPushButton::clicked,
+          this,
+          &MainWindow::on_open_img2_clicked);
 }
 
 MainWindow::~MainWindow() {}
@@ -88,6 +118,42 @@ void MainWindow::on_open_file_clicked()
   settings.setValue("cache/logdir", QDir(filename).dirName());
 
   reload_file(filename);
+}
+
+void MainWindow::on_open_img1_clicked()
+{
+  qDebug() << "开始选择图片1";
+  QSettings settings(QSettings::Scope::SystemScope);
+  auto filename = QFileDialog::getOpenFileName(
+      this, "请选择图片1", settings.value("cache/img1dir").toString());
+  if (filename.isEmpty())
+  {
+    qDebug() << "取消选择图片1";
+    return;
+  }
+  qDebug() << "已选择图片1: " << filename;
+
+  settings.setValue("cache/img1dir", QDir(filename).dirName());
+
+  SetImage(m_img1, filename);
+}
+
+void MainWindow::on_open_img2_clicked()
+{
+  qDebug() << "开始选择图片2";
+  QSettings settings(QSettings::Scope::SystemScope);
+  auto filename = QFileDialog::getOpenFileName(
+      this, "请选择图片2", settings.value("cache/img2dir").toString());
+  if (filename.isEmpty())
+  {
+    qDebug() << "取消选择图片2";
+    return;
+  }
+  qDebug() << "已选择图片2: " << filename;
+
+  settings.setValue("cache/img2dir", QDir(filename).dirName());
+
+  SetImage(m_img2, filename);
 }
 
 void MainWindow::reload_file(const QString &filename)
@@ -112,10 +178,8 @@ void MainWindow::generate_samples()
 
 void MainWindow::generate_img_samples()
 {
-  m_img1->setPixmap(QPixmap("C:/Users/lidawei/Desktop/补卡截图/v.png"));
-  m_img1->setScaledContents(true);
-  m_img2->setPixmap(QPixmap("C:/Users/lidawei/Desktop/补卡截图/v.png"));
-  m_img2->setScaledContents(true);
+  SetImage(m_img1, "C:/Users/lidawei/Desktop/补卡截图/v.png");
+  SetImage(m_img2, "C:/Users/lidawei/Desktop/补卡截图/v.png");
 }
 
 void MainWindow::generate_plotter_samples()
@@ -218,6 +282,12 @@ void MainWindow::generate_traj_samples()
   qDebug() << samples_px_py;
 
   m_plotter2->create_series("p.x-p.y", samples_px_py);
+}
+
+void logviewer::MainWindow::resizeEvent(QResizeEvent *event)
+{
+  //  m_img1->setMaximumSize(event->size() / 2);
+  //  m_img2->setMaximumSize(event->size() / 2);
 }
 
 }  // namespace logviewer
