@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
-#include <QtWidgets/QVBoxLayout>
 
+#include "ui/image.h"
 #include "ui/plotter.h"
 
 namespace logviewer
@@ -17,11 +17,15 @@ class MainWindow : public QMainWindow
   void on_open_file_clicked();
   void reload_file(const QString &filename);
   void generate_samples();
+  void generate_img_samples();
+  void generate_plotter_samples();
+  void generate_traj_samples();
 
  private:
+  Image *m_img1{};
+  Image *m_img2{};
   Plotter *m_plotter1{};
   Plotter *m_plotter2{};
-  QVBoxLayout *m_plotters_layout{};
 };
 
 }  // namespace logviewer
