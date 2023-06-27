@@ -102,6 +102,46 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow() {}
 
+void MainWindow::set_open_log_cb(OpenLogCallback cb)
+{
+  m_open_log_cb = std::move(cb);
+}
+
+void MainWindow::set_t_gb_x_points(const QList<QPointF> &pts)
+{
+  m_plotter1->create_series("timestamp-gb.x", pts);
+}
+
+void MainWindow::set_t_gb_y_points(const QList<QPointF> &pts)
+{
+  m_plotter1->create_series("timestamp-gb.y", pts);
+}
+
+void MainWindow::set_t_gb_z_points(const QList<QPointF> &pts)
+{
+  m_plotter1->create_series("timestamp-gb.z", pts);
+}
+
+void MainWindow::set_t_ba_x_points(const QList<QPointF> &pts)
+{
+  m_plotter1->create_series("timestamp-ba.x", pts);
+}
+
+void MainWindow::set_t_ba_y_points(const QList<QPointF> &pts)
+{
+  m_plotter1->create_series("timestamp-ba.y", pts);
+}
+
+void MainWindow::set_t_ba_z_points(const QList<QPointF> &pts)
+{
+  m_plotter1->create_series("timestamp-ba.z", pts);
+}
+
+void MainWindow::set_t_px_py_points(const QList<QPointF> &pts)
+{
+  m_plotter2->create_series("p.x-p.y", pts);
+}
+
 void MainWindow::on_open_file_clicked()
 {
   qDebug() << "开始选择日志文件";
@@ -164,9 +204,13 @@ void MainWindow::reload_file(const QString &filename)
   // 窗口标题
   setWindowFilePath(filename);
 
-  // TODO(ldw)
+  if (!m_open_log_cb)
+  {
+    qInfo() << "没有注册读日志功能";
+    return;
+  }
 
-  qDebug() << "TODO(ldw) 读取日志";
+  m_open_log_cb(filename);
 }
 
 void MainWindow::generate_samples()
@@ -282,12 +326,6 @@ void MainWindow::generate_traj_samples()
   qDebug() << samples_px_py;
 
   m_plotter2->create_series("p.x-p.y", samples_px_py);
-}
-
-void logviewer::MainWindow::resizeEvent(QResizeEvent *event)
-{
-  //  m_img1->setMaximumSize(event->size() / 2);
-  //  m_img2->setMaximumSize(event->size() / 2);
 }
 
 }  // namespace logviewer
