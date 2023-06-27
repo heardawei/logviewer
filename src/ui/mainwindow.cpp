@@ -23,10 +23,12 @@ MainWindow::MainWindow(QWidget *parent)
     , m_plotter2(new Plotter)
     , m_plotters_layout(new QVBoxLayout)
 {
+  auto test_pb = new QPushButton("测试数据");
   auto open_log_pb = new QPushButton("打开日志文件");
   auto refresh_pb = new QPushButton("刷新");
 
   auto header_layout = new QHBoxLayout;
+  header_layout->addWidget(test_pb);
   header_layout->addWidget(open_log_pb);
   header_layout->addWidget(refresh_pb);
   header_layout->addStretch();
@@ -43,6 +45,16 @@ MainWindow::MainWindow(QWidget *parent)
 
   setCentralWidget(central);
 
+  connect(test_pb,
+          &QPushButton::clicked,
+          this,
+          [=]()
+          {
+            m_plotter1->clear();
+            m_plotter2->clear();
+            generate_samples();
+          });
+
   connect(open_log_pb,
           &QPushButton::clicked,
           this,
@@ -53,20 +65,33 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::on_open_file_clicked()
 {
+  qDebug() << "开始选择日志文件";
   QSettings settings(QSettings::Scope::SystemScope);
   auto filename = QFileDialog::getOpenFileName(
       this, "请选择日志文件", settings.value("cache/logdir").toString());
   if (filename.isEmpty())
   {
+    qDebug() << "取消选择日志文件";
     return;
   }
+  qDebug() << "已选择日志文件: " << filename;
+
   settings.setValue("cache/logdir", QDir(filename).dirName());
-  m_plotter1->clear();
-  m_plotter2->clear();
-  load_file(filename);
+
+  reload_file(filename);
 }
 
-void MainWindow::load_file(const QString &filename)
+void MainWindow::reload_file(const QString &filename)
+{
+  m_plotter1->clear();
+  m_plotter2->clear();
+
+  // TODO(ldw)
+
+  qDebug() << "TODO(ldw) 读取日志";
+}
+
+void MainWindow::generate_samples()
 {
   std::random_device r;
   std::default_random_engine e(r());

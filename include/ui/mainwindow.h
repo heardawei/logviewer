@@ -15,7 +15,8 @@ class MainWindow : public QMainWindow
 
  private:
   void on_open_file_clicked();
-  void load_file(const QString &filename);
+  void reload_file(const QString &filename);
+  void generate_samples();
 
  private:
   Plotter *m_plotter1{};
