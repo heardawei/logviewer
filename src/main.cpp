@@ -13,6 +13,7 @@
 #include <QtWidgets/QMainWindow>
 
 #include "log/log.h"
+#include "proc/image.h"
 #include "ui/mainwindow.h"
 
 QT_USE_NAMESPACE
@@ -24,9 +25,11 @@ int main(int argc, char *argv[])
   using namespace logviewer;
 
   auto w = new MainWindow;
-  auto log = new Log;
+  auto log = new Log(&a);
+  auto img_proc1 = new proc::ImageProc(&a);
+  auto img_proc2 = new proc::ImageProc(&a);
 
-  auto parse_finished = [=](bool success)
+  auto parse_log_finished = [=](bool success)
   {
     if (!success)
     {
@@ -41,9 +44,35 @@ int main(int argc, char *argv[])
     w->set_t_px_py_points(log->px_py_points());
   };
 
-  a.connect(log, &Log::parse_finished, w, parse_finished);
+  auto load_img1_finished = [=](bool success)
+  {
+    if (!success)
+    {
+      return;
+    }
+    w->set_img1_files(img_proc1->images());
+  };
+
+  auto load_img2_finished = [=](bool success)
+  {
+    if (!success)
+    {
+      return;
+    }
+    w->set_img2_files(img_proc2->images());
+  };
+
+  a.connect(log, &Log::parse_finished, w, parse_log_finished);
   a.connect(w, &MainWindow::open_log, log, &Log::clear);
   a.connect(w, &MainWindow::open_log, log, &Log::parse);
+
+  a.connect(img_proc1, &proc::ImageProc::load_finished, w, load_img1_finished);
+  a.connect(w, &MainWindow::open_img1_dir, img_proc1, &proc::ImageProc::clear);
+  a.connect(w, &MainWindow::open_img1_dir, img_proc1, &proc::ImageProc::load);
+
+  a.connect(img_proc2, &proc::ImageProc::load_finished, w, load_img2_finished);
+  a.connect(w, &MainWindow::open_img2_dir, img_proc2, &proc::ImageProc::clear);
+  a.connect(w, &MainWindow::open_img2_dir, img_proc2, &proc::ImageProc::load);
 
   w->resize(1024, 768);
   w->show();

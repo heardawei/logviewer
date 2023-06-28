@@ -38,7 +38,7 @@ void Axis::update_range(const QList<qreal>& vals)
   {
     setRange(m_min, m_max);
   }
-  qDebug() << std::format("{:.2f} -- {:.2f}", m_min, m_max);
+  qDebug() << std::format("{:.2f} -- {:.2f}", m_min, m_max).data();
 }
 
 }  // namespace logviewer

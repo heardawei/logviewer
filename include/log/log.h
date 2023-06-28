@@ -259,7 +259,7 @@ class Log : public QObject
 {
   Q_OBJECT
  public:
-  Log();
+  Log(QObject *parent = nullptr);
   ~Log();
 
   QList<QPointF> t_bg_x_points() const;

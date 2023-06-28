@@ -106,7 +106,8 @@ bool BaseRecord::parse(const QStringList &toks)
                             input_data_cols(),
                             m_real_quantity.cols(),
                             m_state_quantity.cols(),
-                            m_state_quantity_covariance.cols());
+                            m_state_quantity_covariance.cols())
+                    .data();
     return false;
   }
 
@@ -252,7 +253,10 @@ QSharedPointer<BaseRecord> Record::parse(const QStringList &toks)
   return ptr;
 }
 
-Log::Log() {}
+Log::Log(QObject *parent)
+    : QObject(parent)
+{
+}
 
 Log::~Log() {}
 

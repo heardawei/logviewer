@@ -18,21 +18,10 @@
 
 namespace logviewer
 {
-namespace
-{
-void SetImage(Image *img, const QString &filename)
-{
-  img->setPixmap(QPixmap(filename));
-  img->setScaledContents(true);
-  img->setSizePolicy(QSizePolicy::Policy::Ignored,
-                     QSizePolicy::Policy::Ignored);
-}
-}  // namespace
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , m_img1(new Image)
-    , m_img2(new Image)
+    , m_img1(new ImageViewer)
+    , m_img2(new ImageViewer)
     , m_plotter1(new LinePlotter)
     , m_plotter2(new LinePlotter)
 {
@@ -109,8 +98,8 @@ void MainWindow::set_t_bg_x_points(const QList<QPointF> &pts)
   {
     return;
   }
+  qDebug() << "t-bg.x: " << pts.size() << " points";
   m_plotter1->create_series("t-bg.x", pts);
-  qDebug() << "t-bg.x: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_bg_y_points(const QList<QPointF> &pts)
@@ -119,8 +108,8 @@ void MainWindow::set_t_bg_y_points(const QList<QPointF> &pts)
   {
     return;
   }
+  qDebug() << "t-bg.y: " << pts.size() << " points";
   m_plotter1->create_series("t-bg.y", pts);
-  qDebug() << "t-bg.y: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_bg_z_points(const QList<QPointF> &pts)
@@ -129,8 +118,8 @@ void MainWindow::set_t_bg_z_points(const QList<QPointF> &pts)
   {
     return;
   }
+  qDebug() << "t-bg.z: " << pts.size() << " points";
   m_plotter1->create_series("t-bg.z", pts);
-  qDebug() << "t-bg.z: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_ba_x_points(const QList<QPointF> &pts)
@@ -139,8 +128,8 @@ void MainWindow::set_t_ba_x_points(const QList<QPointF> &pts)
   {
     return;
   }
+  qDebug() << "t-ba.x: " << pts.size() << " points";
   m_plotter1->create_series("t-ba.x", pts);
-  qDebug() << "t-ba.x: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_ba_y_points(const QList<QPointF> &pts)
@@ -149,8 +138,8 @@ void MainWindow::set_t_ba_y_points(const QList<QPointF> &pts)
   {
     return;
   }
+  qDebug() << "t-ba.y: " << pts.size() << " points";
   m_plotter1->create_series("t-ba.y", pts);
-  qDebug() << "t-ba.y: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_ba_z_points(const QList<QPointF> &pts)
@@ -159,8 +148,8 @@ void MainWindow::set_t_ba_z_points(const QList<QPointF> &pts)
   {
     return;
   }
+  qDebug() << "t-ba.z: " << pts.size() << " points";
   m_plotter1->create_series("t-ba.z", pts);
-  qDebug() << "t-ba.z: " << pts.size() << "points";
 }
 
 void MainWindow::set_t_px_py_points(const QList<QPointF> &pts)
@@ -169,8 +158,28 @@ void MainWindow::set_t_px_py_points(const QList<QPointF> &pts)
   {
     return;
   }
+  qDebug() << "p.x-p.y: " << pts.size() << " points";
   m_plotter2->create_series("p.x-p.y", pts);
-  qDebug() << "p.x-p.y: " << pts.size() << "points";
+}
+
+void MainWindow::set_img1_files(QStringList imgs)
+{
+  if (imgs.empty())
+  {
+    return;
+  }
+  qDebug() << "imgs1: " << imgs.size() << " files";
+  m_img1->set_images(imgs);
+}
+
+void MainWindow::set_img2_files(QStringList imgs)
+{
+  if (imgs.empty())
+  {
+    return;
+  }
+  qDebug() << "imgs1: " << imgs.size() << " files";
+  m_img2->set_images(imgs);
 }
 
 void MainWindow::on_open_file_clicked()
@@ -180,8 +189,6 @@ void MainWindow::on_open_file_clicked()
                      QSettings::Scope::SystemScope,
                      "Alibaba",
                      "LogViewer");
-  qDebug() << "使用缓存: " << settings.fileName()
-           << " cache/logdir = " << settings.value("cache/logdir");
 
   auto filename = QFileDialog::getOpenFileName(
       this, "请选择日志文件", settings.value("cache/logdir").toString());
@@ -197,73 +204,58 @@ void MainWindow::on_open_file_clicked()
       QString::fromStdString(std::filesystem::path(filename.toStdString())
                                  .parent_path()
                                  .generic_string()));
-  qDebug() << "更新缓存: " << settings.fileName() << " cache/logdir = "
-           << QString::fromStdString(
-                  std::filesystem::path(filename.toStdString())
-                      .parent_path()
-                      .generic_string());
 
   reload_file(filename);
 }
 
 void MainWindow::on_open_img1_clicked()
 {
-  qDebug() << "开始选择图片1";
+  qDebug() << "开始选择图片1文件夹";
   QSettings settings(QSettings::Format::IniFormat,
                      QSettings::Scope::SystemScope,
                      "Alibaba",
                      "LogViewer");
-  auto filename = QFileDialog::getOpenFileName(
-      this, "请选择图片1", settings.value("cache/img1dir").toString());
-  if (filename.isEmpty())
+  auto dir = QFileDialog::getExistingDirectory(
+      this, "请选择图片1文件夹", settings.value("cache/img1dir").toString());
+  if (dir.isEmpty())
   {
-    qDebug() << "取消选择图片1";
+    qDebug() << "取消选择图片1文件夹";
     return;
   }
-  qDebug() << "已选择图片1: " << filename;
+  qDebug() << "已选择图片1文件夹: " << dir;
 
   settings.setValue(
       "cache/img1dir",
-      QString::fromStdString(std::filesystem::path(filename.toStdString())
+      QString::fromStdString(std::filesystem::path(dir.toStdString())
                                  .parent_path()
                                  .generic_string()));
-  qDebug() << "更新缓存: " << settings.fileName() << " cache/img1dir = "
-           << QString::fromStdString(
-                  std::filesystem::path(filename.toStdString())
-                      .parent_path()
-                      .generic_string());
 
-  SetImage(m_img1, filename);
+  emit open_img1_dir(dir);
 }
 
 void MainWindow::on_open_img2_clicked()
 {
-  qDebug() << "开始选择图片2";
+  qDebug() << "开始选择图片2文件夹";
   QSettings settings(QSettings::Format::IniFormat,
                      QSettings::Scope::SystemScope,
                      "Alibaba",
                      "LogViewer");
-  auto filename = QFileDialog::getOpenFileName(
-      this, "请选择图片2", settings.value("cache/img2dir").toString());
-  if (filename.isEmpty())
+  auto dir = QFileDialog::getExistingDirectory(
+      this, "请选择图片2文件夹", settings.value("cache/img2dir").toString());
+  if (dir.isEmpty())
   {
-    qDebug() << "取消选择图片2";
+    qDebug() << "取消选择图片2文件夹";
     return;
   }
-  qDebug() << "已选择图片2: " << filename;
+  qDebug() << "已选择图片2文件夹: " << dir;
 
   settings.setValue(
       "cache/img2dir",
-      QString::fromStdString(std::filesystem::path(filename.toStdString())
+      QString::fromStdString(std::filesystem::path(dir.toStdString())
                                  .parent_path()
                                  .generic_string()));
-  qDebug() << "更新缓存: " << settings.fileName() << " cache/img2dir = "
-           << QString::fromStdString(
-                  std::filesystem::path(filename.toStdString())
-                      .parent_path()
-                      .generic_string());
 
-  SetImage(m_img2, filename);
+  emit open_img2_dir(dir);
 }
 
 void MainWindow::reload_file(const QString &filename)
@@ -286,8 +278,14 @@ void MainWindow::generate_samples()
 
 void MainWindow::generate_img_samples()
 {
-  SetImage(m_img1, "C:/Users/lidawei/Desktop/补卡截图/v.png");
-  SetImage(m_img2, "C:/Users/lidawei/Desktop/补卡截图/v.png");
+  m_img1->set_images({
+      "C:/Users/lidawei/Desktop/补卡截图/a.png",
+      "C:/Users/lidawei/Desktop/补卡截图/v.png",
+  });
+  m_img2->set_images({
+      "C:/Users/lidawei/Desktop/补卡截图/a.png",
+      "C:/Users/lidawei/Desktop/补卡截图/v.png",
+  });
 }
 
 void MainWindow::generate_plotter_samples()
