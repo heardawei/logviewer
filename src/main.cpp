@@ -20,8 +20,6 @@ QT_USE_NAMESPACE
 int main(int argc, char *argv[])
 {
   QApplication a(argc, argv);
-  a.setOrganizationName("align_algo_alibaba_inc");
-  a.setApplicationName("logviewer");
 
   using namespace logviewer;
 
@@ -44,6 +42,7 @@ int main(int argc, char *argv[])
   };
 
   a.connect(log, &Log::parse_finished, w, parse_finished);
+  a.connect(w, &MainWindow::open_log, log, &Log::clear);
   a.connect(w, &MainWindow::open_log, log, &Log::parse);
 
   w->resize(1024, 768);

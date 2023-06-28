@@ -32,11 +32,11 @@ void Axis::update_range(const QList<qreal>& vals)
   const auto [min, max] = std::ranges::minmax_element(vals);
   if (AlgoUtil::update_min_max(*min, m_min, m_max))
   {
-    setRange(std::floor(m_min), std::ceil(m_max));
+    setRange(m_min, m_max);
   }
   if (AlgoUtil::update_min_max(*max, m_min, m_max))
   {
-    setRange(std::floor(m_min), std::ceil(m_max));
+    setRange(m_min, m_max);
   }
   qDebug() << std::format("{:.2f} -- {:.2f}", m_min, m_max);
 }

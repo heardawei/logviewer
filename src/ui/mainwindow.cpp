@@ -1,6 +1,7 @@
 #include "ui/mainwindow.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <random>
 #include <ranges>
 
@@ -32,8 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_img1(new Image)
     , m_img2(new Image)
-    , m_plotter1(new Plotter)
-    , m_plotter2(new Plotter)
+    , m_plotter1(new LinePlotter)
+    , m_plotter2(new LinePlotter)
 {
   auto test_pb = new QPushButton("测试数据");
   auto open_log_pb = new QPushButton("打开日志文件");
@@ -175,7 +176,13 @@ void MainWindow::set_t_px_py_points(const QList<QPointF> &pts)
 void MainWindow::on_open_file_clicked()
 {
   qDebug() << "开始选择日志文件";
-  QSettings settings(QSettings::Scope::SystemScope);
+  QSettings settings(QSettings::Format::IniFormat,
+                     QSettings::Scope::SystemScope,
+                     "Alibaba",
+                     "LogViewer");
+  qDebug() << "使用缓存: " << settings.fileName()
+           << " cache/logdir = " << settings.value("cache/logdir");
+
   auto filename = QFileDialog::getOpenFileName(
       this, "请选择日志文件", settings.value("cache/logdir").toString());
   if (filename.isEmpty())
@@ -185,7 +192,16 @@ void MainWindow::on_open_file_clicked()
   }
   qDebug() << "已选择日志文件: " << filename;
 
-  settings.setValue("cache/logdir", QDir(filename).dirName());
+  settings.setValue(
+      "cache/logdir",
+      QString::fromStdString(std::filesystem::path(filename.toStdString())
+                                 .parent_path()
+                                 .generic_string()));
+  qDebug() << "更新缓存: " << settings.fileName() << " cache/logdir = "
+           << QString::fromStdString(
+                  std::filesystem::path(filename.toStdString())
+                      .parent_path()
+                      .generic_string());
 
   reload_file(filename);
 }
@@ -193,7 +209,10 @@ void MainWindow::on_open_file_clicked()
 void MainWindow::on_open_img1_clicked()
 {
   qDebug() << "开始选择图片1";
-  QSettings settings(QSettings::Scope::SystemScope);
+  QSettings settings(QSettings::Format::IniFormat,
+                     QSettings::Scope::SystemScope,
+                     "Alibaba",
+                     "LogViewer");
   auto filename = QFileDialog::getOpenFileName(
       this, "请选择图片1", settings.value("cache/img1dir").toString());
   if (filename.isEmpty())
@@ -203,7 +222,16 @@ void MainWindow::on_open_img1_clicked()
   }
   qDebug() << "已选择图片1: " << filename;
 
-  settings.setValue("cache/img1dir", QDir(filename).dirName());
+  settings.setValue(
+      "cache/img1dir",
+      QString::fromStdString(std::filesystem::path(filename.toStdString())
+                                 .parent_path()
+                                 .generic_string()));
+  qDebug() << "更新缓存: " << settings.fileName() << " cache/img1dir = "
+           << QString::fromStdString(
+                  std::filesystem::path(filename.toStdString())
+                      .parent_path()
+                      .generic_string());
 
   SetImage(m_img1, filename);
 }
@@ -211,7 +239,10 @@ void MainWindow::on_open_img1_clicked()
 void MainWindow::on_open_img2_clicked()
 {
   qDebug() << "开始选择图片2";
-  QSettings settings(QSettings::Scope::SystemScope);
+  QSettings settings(QSettings::Format::IniFormat,
+                     QSettings::Scope::SystemScope,
+                     "Alibaba",
+                     "LogViewer");
   auto filename = QFileDialog::getOpenFileName(
       this, "请选择图片2", settings.value("cache/img2dir").toString());
   if (filename.isEmpty())
@@ -221,7 +252,16 @@ void MainWindow::on_open_img2_clicked()
   }
   qDebug() << "已选择图片2: " << filename;
 
-  settings.setValue("cache/img2dir", QDir(filename).dirName());
+  settings.setValue(
+      "cache/img2dir",
+      QString::fromStdString(std::filesystem::path(filename.toStdString())
+                                 .parent_path()
+                                 .generic_string()));
+  qDebug() << "更新缓存: " << settings.fileName() << " cache/img2dir = "
+           << QString::fromStdString(
+                  std::filesystem::path(filename.toStdString())
+                      .parent_path()
+                      .generic_string());
 
   SetImage(m_img2, filename);
 }

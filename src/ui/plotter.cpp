@@ -52,7 +52,7 @@ qsizetype Plotter::create_series(const QString &name)
 {
   auto id = m_chart->series().size();
 
-  auto series = new Series;
+  auto series = new_series();
   m_chart->addSeries(series);
 
   series->setName(name);
@@ -88,7 +88,7 @@ bool Plotter::append(qsizetype series_id, const QList<QPointF> &pts)
     return false;
   }
 
-  auto serie = qobject_cast<Series *>(series[series_id]);
+  auto serie = qobject_cast<QXYSeries *>(series[series_id]);
   if (!serie)
   {
     return false;
@@ -112,4 +112,15 @@ bool Plotter::append(qsizetype series_id, const QList<QPointF> &pts)
 }
 
 void Plotter::clear() { m_chart->removeAllSeries(); }
+
+QXYSeries *LinePlotter::new_series()
+{
+  return qobject_cast<QXYSeries *>(new QLineSeries);
+}
+
+QXYSeries *ScatterPlotter::new_series()
+{
+  return qobject_cast<QXYSeries *>(new QScatterSeries);
+}
+
 }  // namespace logviewer

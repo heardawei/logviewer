@@ -28,6 +28,84 @@ class RealListData
   QList<qreal> m_data;
 };
 
+// IMU传感器输入数据
+class IMUInputData : public RealListData
+{
+ public:
+  enum class Index : qsizetype
+  {
+    TIME,
+    GYRO_X,
+    GYRO_Y,
+    GYRO_Z,
+    ACC_X,
+    ACC_Y,
+    ACC_Z,
+    MAX,
+  };
+
+  virtual constexpr qsizetype cols() const override;
+
+  qreal &operator[](Index idx);
+  const qreal &operator[](Index idx) const;
+
+ protected:
+  QList<qreal> m_data;
+};
+
+// Odom传感器输入数据
+class OdomInputData : public RealListData
+{
+ public:
+  enum class Index : qsizetype
+  {
+    TIME,
+    VELO_X,
+    VELO_Y,
+    VELO_Z,
+    MAX,
+  };
+
+  virtual constexpr qsizetype cols() const override;
+
+  qreal &operator[](Index idx);
+
+  const qreal &operator[](Index idx) const;
+
+ protected:
+  QList<qreal> m_data;
+};
+
+// Camera传感器输入数据
+class CameraInputData : public RealListData
+{
+ public:
+  enum class Index : qsizetype
+  {
+    TIME,
+    LOC_X,
+    LOC_Y,
+    LOC_Z,
+    POSE_X,
+    POSE_Y,
+    POSE_Z,
+    MAX,
+  };
+
+  virtual constexpr qsizetype cols() const override;
+
+  qreal &operator[](Index idx);
+  const qreal &operator[](Index idx) const;
+
+ protected:
+  QList<qreal> m_data;
+};
+
+// GNSS传感器输入数据
+class GNSSInputData : public CameraInputData
+{
+};
+
 class Quantity : public RealListData
 {
  public:
@@ -114,87 +192,6 @@ class BaseRecord
   StateQuantityCovariance m_state_quantity_covariance;
 };
 
-// IMU传感器输入数据
-class IMUInputData : public RealListData
-{
- public:
-  enum class Index : qsizetype
-  {
-    TIME1,
-    TIME2,
-    GYRO_X,
-    GYRO_Y,
-    GYRO_Z,
-    ACC_X,
-    ACC_Y,
-    ACC_Z,
-    MAX,
-  };
-
-  virtual constexpr qsizetype cols() const override;
-
-  qreal &operator[](Index idx);
-  const qreal &operator[](Index idx) const;
-
- protected:
-  QList<qreal> m_data;
-};
-
-// Odom传感器输入数据
-class OdomInputData : public RealListData
-{
- public:
-  enum class Index : qsizetype
-  {
-    TIME1,
-    TIME2,
-    VELO_X,
-    VELO_Y,
-    VELO_Z,
-    MAX,
-  };
-
-  virtual constexpr qsizetype cols() const override;
-
-  qreal &operator[](Index idx);
-
-  const qreal &operator[](Index idx) const;
-
- protected:
-  QList<qreal> m_data;
-};
-
-// Camera传感器输入数据
-class CameraInputData : public RealListData
-{
- public:
-  enum class Index : qsizetype
-  {
-    TIME1,
-    TIME2,
-    LOC_X,
-    LOC_Y,
-    LOC_Z,
-    POSE_X,
-    POSE_Y,
-    POSE_Z,
-    MAX,
-  };
-
-  virtual constexpr qsizetype cols() const override;
-
-  qreal &operator[](Index idx);
-  const qreal &operator[](Index idx) const;
-
- protected:
-  QList<qreal> m_data;
-};
-
-// GNSS传感器输入数据
-class GNSSInputData : public CameraInputData
-{
-};
-
 // 一行IMU传感器数据
 class IMURecord : public BaseRecord
 {
@@ -273,16 +270,21 @@ class Log : public QObject
   QList<QPointF> t_ba_z_points() const;
   QList<QPointF> px_py_points() const;
 
+  qsizetype stride() const;
+
  signals:
   void parse_finished(bool);
 
  public slots:
   void parse(const QString &filename);
+  void stride(qsizetype i);
+  void clear();
 
  protected:
   bool parse_line(const QString &line);
 
  protected:
+  qsizetype m_stride{5};
   QList<QSharedPointer<BaseRecord>> m_records;
 };
 

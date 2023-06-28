@@ -42,8 +42,8 @@ signals:
  private:
   Image *m_img1{};
   Image *m_img2{};
-  Plotter *m_plotter1{};
-  Plotter *m_plotter2{};
+  LinePlotter *m_plotter1{};
+  LinePlotter *m_plotter2{};
 };
 
 }  // namespace logviewer
