@@ -40,6 +40,11 @@ qsizetype ImageViewer::index() const { return m_index; }
 
 bool ImageViewer::loop() const { return m_loop; }
 
+void ImageViewer::play()
+{
+  // auto base_time = 
+}
+
 void ImageViewer::set_loop(bool loop)
 {
   m_loop = loop;

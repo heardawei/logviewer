@@ -44,6 +44,7 @@ class ImageViewer : public Image
   void index_changed(int);
 
  public slots:
+  void play();
   void set_loop(bool loop);
   void set_images(QStringList images);
 
