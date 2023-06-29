@@ -284,7 +284,7 @@ class Log : public QObject
   bool parse_line(const QString &line);
 
  protected:
-  qsizetype m_stride{5};
+  qsizetype m_stride{100};
   QList<QSharedPointer<BaseRecord>> m_records;
 };
 
