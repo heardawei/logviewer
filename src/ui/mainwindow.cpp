@@ -22,8 +22,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_img1(new ImageViewer)
     , m_img2(new ImageViewer)
-    , m_plotter1(new LinePlotter)
-    , m_plotter2(new LinePlotter)
+    , m_plotter1(new Plotter)
+    , m_plotter2(new Plotter)
 {
   auto test_pb = new QPushButton("测试数据");
   auto open_log_pb = new QPushButton("打开日志文件");
@@ -64,15 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
 
   setCentralWidget(central);
 
-  connect(test_pb,
-          &QPushButton::clicked,
-          this,
-          [=]()
-          {
-            m_plotter1->clear();
-            m_plotter2->clear();
-            generate_samples();
-          });
+  connect(test_pb, &QPushButton::clicked, this, [=]() { generate_samples(); });
 
   connect(open_log_pb,
           &QPushButton::clicked,
@@ -92,74 +84,81 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow() {}
 
-void MainWindow::set_t_bg_x_points(const QList<QPointF> &pts)
+void MainWindow::set_t_bg_x_points(const QVector<double> &x,
+                                   const QVector<double> &y)
 {
-  if (pts.empty())
+  if (x.empty() || y.empty())
   {
     return;
   }
-  qDebug() << "t-bg.x: " << pts.size() << " points";
-  m_plotter1->create_series("t-bg.x", pts);
+  qDebug() << "t-bg.x: " << x.size() << " points";
+  m_plotter1->create_graph("t-bg.x", x, y);
 }
 
-void MainWindow::set_t_bg_y_points(const QList<QPointF> &pts)
+void MainWindow::set_t_bg_y_points(const QVector<double> &x,
+                                   const QVector<double> &y)
 {
-  if (pts.empty())
+  if (x.empty() || y.empty())
   {
     return;
   }
-  qDebug() << "t-bg.y: " << pts.size() << " points";
-  m_plotter1->create_series("t-bg.y", pts);
+  qDebug() << "t-bg.y: " << x.size() << " points";
+  m_plotter1->create_graph("t-bg.y", x, y);
 }
 
-void MainWindow::set_t_bg_z_points(const QList<QPointF> &pts)
+void MainWindow::set_t_bg_z_points(const QVector<double> &x,
+                                   const QVector<double> &y)
 {
-  if (pts.empty())
+  if (x.empty() || y.empty())
   {
     return;
   }
-  qDebug() << "t-bg.z: " << pts.size() << " points";
-  m_plotter1->create_series("t-bg.z", pts);
+  qDebug() << "t-bg.z: " << x.size() << " points";
+  m_plotter1->create_graph("t-bg.z", x, y);
 }
 
-void MainWindow::set_t_ba_x_points(const QList<QPointF> &pts)
+void MainWindow::set_t_ba_x_points(const QVector<double> &x,
+                                   const QVector<double> &y)
 {
-  if (pts.empty())
+  if (x.empty() || y.empty())
   {
     return;
   }
-  qDebug() << "t-ba.x: " << pts.size() << " points";
-  m_plotter1->create_series("t-ba.x", pts);
+  qDebug() << "t-ba.x: " << x.size() << " points";
+  m_plotter1->create_graph("t-ba.x", x, y);
 }
 
-void MainWindow::set_t_ba_y_points(const QList<QPointF> &pts)
+void MainWindow::set_t_ba_y_points(const QVector<double> &x,
+                                   const QVector<double> &y)
 {
-  if (pts.empty())
+  if (x.empty() || y.empty())
   {
     return;
   }
-  qDebug() << "t-ba.y: " << pts.size() << " points";
-  m_plotter1->create_series("t-ba.y", pts);
+  qDebug() << "t-ba.y: " << x.size() << " points";
+  m_plotter1->create_graph("t-ba.y", x, y);
 }
 
-void MainWindow::set_t_ba_z_points(const QList<QPointF> &pts)
+void MainWindow::set_t_ba_z_points(const QVector<double> &x,
+                                   const QVector<double> &y)
 {
-  if (pts.empty())
+  if (x.empty() || y.empty())
   {
     return;
   }
-  qDebug() << "t-ba.z: " << pts.size() << " points";
-  m_plotter1->create_series("t-ba.z", pts);
+  qDebug() << "t-ba.z: " << x.size() << " points";
+  m_plotter1->create_graph("t-ba.z", x, y);
 }
 
-void MainWindow::set_t_px_py_points(const QList<QPointF> &pts)
+void MainWindow::set_t_px_py_points(const QVector<double> &x,
+                                    const QVector<double> &y)
 {
-  if (pts.empty())
+  if (x.empty() || y.empty())
   {
     return;
   }
-  qDebug() << "p.x-p.y: " << pts.size() << " points";
-  m_plotter2->create_series("p.x-p.y", pts);
+  qDebug() << "p.x-p.y: " << x.size() << " points";
+  m_plotter2->create_graph("p.x-p.y", x, y);
 }
 
 void MainWindow::set_img1_files(QStringList imgs)
@@ -260,9 +259,6 @@ void MainWindow::on_open_img2_clicked()
 
 void MainWindow::reload_file(const QString &filename)
 {
-  m_plotter1->clear();
-  m_plotter2->clear();
-
   // 窗口标题
   setWindowFilePath(filename);
 
@@ -295,75 +291,55 @@ void MainWindow::generate_plotter_samples()
 
   constexpr auto samples = 100;
 
-  QList<QPointF> samples_t_bg_x;
-  QList<QPointF> samples_t_bg_y;
-  QList<QPointF> samples_t_bg_z;
-  QList<QPointF> samples_t_ba_x;
-  QList<QPointF> samples_t_ba_y;
-  QList<QPointF> samples_t_ba_z;
+  std::uniform_real_distribution<double> u_t_bg_x(0, 50);
+  std::uniform_real_distribution<double> u_t_bg_y(40, 100);
+  std::uniform_real_distribution<double> u_t_bg_z(90, 150);
+  std::uniform_real_distribution<double> u_t_ba_x(140, 200);
+  std::uniform_real_distribution<double> u_t_ba_y(190, 250);
+  std::uniform_real_distribution<double> u_t_ba_z(240, 300);
+  // auto base_time = QDateTime::currentMSecsSinceEpoch();
 
-  auto base_time = QDateTime::currentMSecsSinceEpoch();
+  auto times =
+      std::views::iota(0, samples) |
+      std::views::transform([](qint64 v) { return static_cast<double>(v); }) |
+      std::ranges::to<QVector<double>>();
 
-  std::ranges::transform(std::views::iota(base_time),
-                         std::views::iota(0, samples),
-                         std::back_inserter(samples_t_bg_x),
-                         [&](qint64 t, int)
-                         {
-                           std::uniform_real_distribution<qreal> u(0, 50);
-                           return QPointF(static_cast<qreal>(t), u(e));
-                         });
+  auto samples_t_bg_x =
+      std::views::iota(0, samples) |
+      std::views::transform([&](int) { return u_t_bg_x(e); }) |
+      std::ranges::to<QVector<double>>();
 
-  std::ranges::transform(std::views::iota(base_time),
-                         std::views::iota(0, samples),
-                         std::back_inserter(samples_t_bg_y),
-                         [&](qint64 t, int)
-                         {
-                           std::uniform_real_distribution<qreal> u(40, 100);
-                           return QPointF(static_cast<qreal>(t), u(e));
-                         });
+  auto samples_t_bg_y =
+      std::views::iota(0, samples) |
+      std::views::transform([&](int) { return u_t_bg_y(e); }) |
+      std::ranges::to<QVector<double>>();
 
-  std::ranges::transform(std::views::iota(base_time),
-                         std::views::iota(0, samples),
-                         std::back_inserter(samples_t_bg_z),
-                         [&](qint64 t, int)
-                         {
-                           std::uniform_real_distribution<qreal> u(90, 150);
-                           return QPointF(static_cast<qreal>(t), u(e));
-                         });
+  auto samples_t_bg_z =
+      std::views::iota(0, samples) |
+      std::views::transform([&](int) { return u_t_bg_z(e); }) |
+      std::ranges::to<QVector<double>>();
 
-  std::ranges::transform(std::views::iota(base_time),
-                         std::views::iota(0, samples),
-                         std::back_inserter(samples_t_ba_x),
-                         [&](qint64 t, int)
-                         {
-                           std::uniform_real_distribution<qreal> u(140, 200);
-                           return QPointF(static_cast<qreal>(t), u(e));
-                         });
+  auto samples_t_ba_x =
+      std::views::iota(0, samples) |
+      std::views::transform([&](int) { return u_t_ba_x(e); }) |
+      std::ranges::to<QVector<double>>();
 
-  std::ranges::transform(std::views::iota(base_time),
-                         std::views::iota(0, samples),
-                         std::back_inserter(samples_t_ba_y),
-                         [&](qint64 t, int)
-                         {
-                           std::uniform_real_distribution<qreal> u(190, 250);
-                           return QPointF(static_cast<qreal>(t), u(e));
-                         });
+  auto samples_t_ba_y =
+      std::views::iota(0, samples) |
+      std::views::transform([&](int) { return u_t_ba_y(e); }) |
+      std::ranges::to<QVector<double>>();
 
-  std::ranges::transform(std::views::iota(base_time),
-                         std::views::iota(0, samples),
-                         std::back_inserter(samples_t_ba_z),
-                         [&](qint64 t, int)
-                         {
-                           std::uniform_real_distribution<qreal> u(240, 300);
-                           return QPointF(static_cast<qreal>(t), u(e));
-                         });
+  auto samples_t_ba_z =
+      std::views::iota(0, samples) |
+      std::views::transform([&](int) { return u_t_ba_z(e); }) |
+      std::ranges::to<QVector<double>>();
 
-  m_plotter1->create_series("t-bg.x", samples_t_bg_x);
-  m_plotter1->create_series("t-bg.y", samples_t_bg_y);
-  m_plotter1->create_series("t-bg.z", samples_t_bg_z);
-  m_plotter1->create_series("t-ba.x", samples_t_ba_x);
-  m_plotter1->create_series("t-ba.y", samples_t_ba_y);
-  m_plotter1->create_series("t-ba.z", samples_t_ba_z);
+  m_plotter1->create_graph("t-bg.x", times, samples_t_bg_x);
+  m_plotter1->create_graph("t-bg.y", times, samples_t_bg_y);
+  m_plotter1->create_graph("t-bg.z", times, samples_t_bg_z);
+  m_plotter1->create_graph("t-ba.x", times, samples_t_ba_x);
+  m_plotter1->create_graph("t-ba.y", times, samples_t_ba_y);
+  m_plotter1->create_graph("t-ba.z", times, samples_t_ba_z);
 }
 
 void MainWindow::generate_traj_samples()
@@ -372,22 +348,33 @@ void MainWindow::generate_traj_samples()
   std::default_random_engine e(r());
 
   constexpr auto samples = 5;
-  QList<QPointF> samples_px_py;
 
-  std::ranges::transform(
-      std::views::iota(0),
-      std::views::iota(0, samples),
-      std::back_inserter(samples_px_py),
-      [&](int i, int j)
-      {
-        std::uniform_real_distribution<qreal> di(i * 10, i * 10 + 10);
-        std::uniform_real_distribution<qreal> dj(j * 2, j * 2 + 2);
-        return QPointF(di(e), dj(e));
-      });
+  auto times =
+      std::views::iota(0, samples) |
+      std::views::transform([](qint64 v) { return static_cast<double>(v); }) |
+      std::ranges::to<QVector<double>>();
 
-  qDebug() << samples_px_py;
+  auto samples_px =
+      std::views::iota(0, samples) |
+      std::views::transform(
+          [&](int i)
+          {
+            std::uniform_real_distribution<double> u_x(i * 10, i * 10 + 10);
+            return u_x(e);
+          }) |
+      std::ranges::to<QVector<double>>();
 
-  m_plotter2->create_series("p.x-p.y", samples_px_py);
+  auto samples_py =
+      std::views::iota(0, samples) |
+      std::views::transform(
+          [&](int i)
+          {
+            std::uniform_real_distribution<double> u_y(i * 2, i * 2 + 2);
+            return u_y(e);
+          }) |
+      std::ranges::to<QVector<double>>();
+
+  m_plotter2->create_graph("p.x-p.y", samples_px, samples_py);
 }
 
 }  // namespace logviewer

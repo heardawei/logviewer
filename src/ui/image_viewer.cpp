@@ -64,7 +64,7 @@ void ImageViewer::set_images(QStringList images)
     return stem.toDouble();
   };
   auto prev_time = filename_to_time(images.front());
-  auto calc_interval = [&](qreal next_time)
+  auto calc_interval = [&](double next_time)
   {
     auto interval = std::max(next_time - prev_time, 0.0);
     prev_time = next_time;
@@ -75,7 +75,7 @@ void ImageViewer::set_images(QStringList images)
   m_ms_intervals = std::views::all(images.sliced(1)) |
                    std::views::transform(filename_to_time) |
                    std::views::transform(calc_interval) |
-                   std::ranges::to<QList<int>>();
+                   std::ranges::to<QVector<int>>();
   m_images = std::move(images);
 
   Q_ASSERT_X(m_ms_intervals.size() + 1 == m_images.size(),

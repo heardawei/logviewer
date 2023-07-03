@@ -3,11 +3,11 @@
 #include <algorithm>
 #include <ranges>
 
-#include <QtCore/QList>
 #include <QtCore/QObject>
 #include <QtCore/QPointF>
 #include <QtCore/QSharedPointer>
 #include <QtCore/QString>
+#include <QtCore/QVector>
 
 namespace logviewer
 {
@@ -16,16 +16,16 @@ class RealListData
  public:
   bool parse(const QStringList &toks);
 
-  QList<qreal> &data();
-  const QList<qreal> &data() const;
+  QVector<double> &data();
+  const QVector<double> &data() const;
 
-  qreal &operator[](qsizetype i);
-  const qreal &operator[](qsizetype i) const;
+  double &operator[](qsizetype i);
+  const double &operator[](qsizetype i) const;
 
   virtual constexpr qsizetype cols() const = 0;
 
  protected:
-  QList<qreal> m_data;
+  QVector<double> m_data;
 };
 
 // IMU传感器输入数据
@@ -46,11 +46,11 @@ class IMUInputData : public RealListData
 
   virtual constexpr qsizetype cols() const override;
 
-  qreal &operator[](Index idx);
-  const qreal &operator[](Index idx) const;
+  double &operator[](Index idx);
+  const double &operator[](Index idx) const;
 
  protected:
-  QList<qreal> m_data;
+  QVector<double> m_data;
 };
 
 // Odom传感器输入数据
@@ -68,12 +68,12 @@ class OdomInputData : public RealListData
 
   virtual constexpr qsizetype cols() const override;
 
-  qreal &operator[](Index idx);
+  double &operator[](Index idx);
 
-  const qreal &operator[](Index idx) const;
+  const double &operator[](Index idx) const;
 
  protected:
-  QList<qreal> m_data;
+  QVector<double> m_data;
 };
 
 // Camera传感器输入数据
@@ -94,11 +94,11 @@ class CameraInputData : public RealListData
 
   virtual constexpr qsizetype cols() const override;
 
-  qreal &operator[](Index idx);
-  const qreal &operator[](Index idx) const;
+  double &operator[](Index idx);
+  const double &operator[](Index idx) const;
 
  protected:
-  QList<qreal> m_data;
+  QVector<double> m_data;
 };
 
 // GNSS传感器输入数据
@@ -133,8 +133,8 @@ class Quantity : public RealListData
     MAX,
   };
 
-  qreal &data(Index idx);
-  const qreal &data(Index idx) const;
+  double &data(Index idx);
+  const double &data(Index idx) const;
 
   virtual constexpr qsizetype cols() const override;
 };
@@ -262,30 +262,28 @@ class Log : public QObject
   Log(QObject *parent = nullptr);
   ~Log();
 
-  QList<QPointF> t_bg_x_points() const;
-  QList<QPointF> t_bg_y_points() const;
-  QList<QPointF> t_bg_z_points() const;
-  QList<QPointF> t_ba_x_points() const;
-  QList<QPointF> t_ba_y_points() const;
-  QList<QPointF> t_ba_z_points() const;
-  QList<QPointF> px_py_points() const;
-
-  qsizetype stride() const;
+  QVector<double> t() const;
+  QVector<double> bg_x() const;
+  QVector<double> bg_y() const;
+  QVector<double> bg_z() const;
+  QVector<double> ba_x() const;
+  QVector<double> ba_y() const;
+  QVector<double> ba_z() const;
+  QVector<double> px() const;
+  QVector<double> py() const;
 
  signals:
   void parse_finished(bool);
 
  public slots:
   void parse(const QString &filename);
-  void stride(qsizetype i);
   void clear();
 
  protected:
   bool parse_line(const QString &line);
 
  protected:
-  qsizetype m_stride{100};
-  QList<QSharedPointer<BaseRecord>> m_records;
+  QVector<QSharedPointer<BaseRecord>> m_records;
 };
 
 }  // namespace logviewer

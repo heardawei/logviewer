@@ -12,7 +12,7 @@ endif()
 
 set(INSTALL_DIR "${INSTALL_DIR}/logviewer")
 
-find_package(Qt6 REQUIRED COMPONENTS Charts Core Gui Concurrent)
+find_package(Qt6 REQUIRED COMPONENTS Charts Core Gui Concurrent Widgets PrintSupport)
 
 set(INC_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/"
@@ -49,6 +49,8 @@ target_link_libraries(logviewer PUBLIC
     Qt::Core
     Qt::Gui
     Qt::Concurrent
+    Qt::Widgets
+    Qt::PrintSupport
 )
 
 target_compile_features(logviewer PRIVATE cxx_std_23)

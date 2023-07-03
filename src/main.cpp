@@ -35,13 +35,13 @@ int main(int argc, char *argv[])
     {
       return;
     }
-    w->set_t_bg_x_points(log->t_bg_x_points());
-    w->set_t_bg_y_points(log->t_bg_y_points());
-    w->set_t_bg_z_points(log->t_bg_z_points());
-    w->set_t_ba_x_points(log->t_ba_x_points());
-    w->set_t_ba_y_points(log->t_ba_y_points());
-    w->set_t_ba_z_points(log->t_ba_z_points());
-    w->set_t_px_py_points(log->px_py_points());
+    w->set_t_bg_x_points(log->t(), log->bg_x());
+    w->set_t_bg_y_points(log->t(), log->bg_y());
+    w->set_t_bg_z_points(log->t(), log->bg_z());
+    w->set_t_ba_x_points(log->t(), log->ba_x());
+    w->set_t_ba_y_points(log->t(), log->ba_y());
+    w->set_t_ba_z_points(log->t(), log->ba_z());
+    w->set_t_px_py_points(log->px(), log->py());
   };
 
   auto load_img1_finished = [=](bool success)

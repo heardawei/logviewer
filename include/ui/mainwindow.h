@@ -21,13 +21,13 @@ signals:
   void open_img2_dir(const QString &dir);
 
  public slots:
-  void set_t_bg_x_points(const QList<QPointF> &pts);
-  void set_t_bg_y_points(const QList<QPointF> &pts);
-  void set_t_bg_z_points(const QList<QPointF> &pts);
-  void set_t_ba_x_points(const QList<QPointF> &pts);
-  void set_t_ba_y_points(const QList<QPointF> &pts);
-  void set_t_ba_z_points(const QList<QPointF> &pts);
-  void set_t_px_py_points(const QList<QPointF> &pts);
+  void set_t_bg_x_points(const QVector<double> &x, const QVector<double> &y);
+  void set_t_bg_y_points(const QVector<double> &x, const QVector<double> &y);
+  void set_t_bg_z_points(const QVector<double> &x, const QVector<double> &y);
+  void set_t_ba_x_points(const QVector<double> &x, const QVector<double> &y);
+  void set_t_ba_y_points(const QVector<double> &x, const QVector<double> &y);
+  void set_t_ba_z_points(const QVector<double> &x, const QVector<double> &y);
+  void set_t_px_py_points(const QVector<double> &x, const QVector<double> &y);
   void set_img1_files(QStringList imgs);
   void set_img2_files(QStringList imgs);
 
@@ -46,8 +46,8 @@ signals:
  private:
   ImageViewer *m_img1{};
   ImageViewer *m_img2{};
-  LinePlotter *m_plotter1{};
-  LinePlotter *m_plotter2{};
+  Plotter *m_plotter1{};
+  Plotter *m_plotter2{};
 };
 
 }  // namespace logviewer

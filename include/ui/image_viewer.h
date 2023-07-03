@@ -54,7 +54,7 @@ class ImageViewer : public Image
 
  private:
   QStringList m_images;
-  QList<int> m_ms_intervals;
+  QVector<int> m_ms_intervals;
   bool m_loop{true};
   qsizetype m_index{};
   QTimer m_timer;

@@ -11,7 +11,7 @@ namespace logviewer
 {
 namespace
 {
-qreal to_double(const QString &str) { return str.toDouble(); }
+double to_double(const QString &str) { return str.toDouble(); }
 }  // namespace
 
 bool RealListData::parse(const QStringList &toks)
@@ -22,30 +22,30 @@ bool RealListData::parse(const QStringList &toks)
   }
 
   m_data = std::views::all(toks) | std::views::transform(to_double) |
-           std::ranges::to<QList<qreal>>();
+           std::ranges::to<QVector<double>>();
 
   return true;
 }
 
-QList<qreal> &RealListData::data() { return m_data; }
+QVector<double> &RealListData::data() { return m_data; }
 
-const QList<qreal> &RealListData::data() const { return m_data; }
+const QVector<double> &RealListData::data() const { return m_data; }
 
-qreal &RealListData::operator[](qsizetype i) { return m_data[i]; }
+double &RealListData::operator[](qsizetype i) { return m_data[i]; }
 
-const qreal &RealListData::operator[](qsizetype i) const { return m_data[i]; }
+const double &RealListData::operator[](qsizetype i) const { return m_data[i]; }
 
 constexpr qsizetype IMUInputData::cols() const
 {
   return std::to_underlying(Index::MAX);
 }
 
-qreal &IMUInputData::operator[](Index idx)
+double &IMUInputData::operator[](Index idx)
 {
   return m_data[std::to_underlying(idx)];
 }
 
-const qreal &IMUInputData::operator[](Index idx) const
+const double &IMUInputData::operator[](Index idx) const
 {
   return m_data[std::to_underlying(idx)];
 }
@@ -55,12 +55,12 @@ constexpr qsizetype OdomInputData::cols() const
   return std::to_underlying(Index::MAX);
 }
 
-qreal &OdomInputData::operator[](Index idx)
+double &OdomInputData::operator[](Index idx)
 {
   return m_data[std::to_underlying(idx)];
 }
 
-const qreal &OdomInputData::operator[](Index idx) const
+const double &OdomInputData::operator[](Index idx) const
 {
   return m_data[std::to_underlying(idx)];
 }
@@ -70,19 +70,19 @@ constexpr qsizetype CameraInputData::cols() const
   return std::to_underlying(Index::MAX);
 }
 
-qreal &CameraInputData::operator[](Index idx)
+double &CameraInputData::operator[](Index idx)
 {
   return m_data[std::to_underlying(idx)];
 }
 
-const qreal &CameraInputData::operator[](Index idx) const
+const double &CameraInputData::operator[](Index idx) const
 {
   return m_data[std::to_underlying(idx)];
 }
 
-qreal &Quantity::data(Index idx) { return m_data[std::to_underlying(idx)]; }
+double &Quantity::data(Index idx) { return m_data[std::to_underlying(idx)]; }
 
-const qreal &Quantity::data(Index idx) const
+const double &Quantity::data(Index idx) const
 {
   return m_data[std::to_underlying(idx)];
 }
@@ -138,10 +138,11 @@ bool BaseRecord::parse(const QStringList &toks)
   // 解析状态量协方差
   offset += count;
   count = m_state_quantity_covariance.cols();
-  if (!m_state_quantity_covariance.parse(toks.sliced(offset, count)))
-  {
-    return false;
-  }
+  // TODO(ldw): optimiz
+  // if (!m_state_quantity_covariance.parse(toks.sliced(offset, count)))
+  // {
+  //   return false;
+  // }
 
   return true;
 }
@@ -260,91 +261,77 @@ Log::Log(QObject *parent)
 
 Log::~Log() {}
 
-QList<QPointF> Log::t_bg_x_points() const
+QVector<double> Log::t() const
 {
   auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  {
-    auto time = rec->real_quantity().data(RealQuantity::Index::TIME);
-    auto val = rec->real_quantity().data(RealQuantity::Index::BG_X);
-    return QPointF(time, val);
-  };
+  { return rec->real_quantity().data(RealQuantity::Index::TIME); };
   return std::views::all(m_records) | std::views::transform(proj) |
-         std::views::stride(stride()) | std::ranges::to<QList<QPointF>>();
+         std::ranges::to<QVector<double>>();
 }
 
-QList<QPointF> Log::t_bg_y_points() const
+QVector<double> Log::bg_x() const
 {
   auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  {
-    auto time = rec->real_quantity().data(RealQuantity::Index::TIME);
-    auto val = rec->real_quantity().data(RealQuantity::Index::BG_X);
-    return QPointF(time, val);
-  };
+  { return rec->real_quantity().data(RealQuantity::Index::BG_X); };
   return std::views::all(m_records) | std::views::transform(proj) |
-         std::views::stride(stride()) | std::ranges::to<QList<QPointF>>();
+         std::ranges::to<QVector<double>>();
 }
 
-QList<QPointF> Log::t_bg_z_points() const
+QVector<double> Log::bg_y() const
 {
   auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  {
-    auto time = rec->real_quantity().data(RealQuantity::Index::TIME);
-    auto val = rec->real_quantity().data(RealQuantity::Index::BG_Z);
-    return QPointF(time, val);
-  };
+  { return rec->real_quantity().data(RealQuantity::Index::BG_Y); };
   return std::views::all(m_records) | std::views::transform(proj) |
-         std::views::stride(stride()) | std::ranges::to<QList<QPointF>>();
+         std::ranges::to<QVector<double>>();
 }
 
-QList<QPointF> Log::t_ba_x_points() const
+QVector<double> Log::bg_z() const
 {
   auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  {
-    auto time = rec->real_quantity().data(RealQuantity::Index::TIME);
-    auto val = rec->real_quantity().data(RealQuantity::Index::BA_X);
-    return QPointF(time, val);
-  };
+  { return rec->real_quantity().data(RealQuantity::Index::BG_Z); };
   return std::views::all(m_records) | std::views::transform(proj) |
-         std::views::stride(stride()) | std::ranges::to<QList<QPointF>>();
+         std::ranges::to<QVector<double>>();
 }
 
-QList<QPointF> Log::t_ba_y_points() const
+QVector<double> Log::ba_x() const
 {
   auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  {
-    auto time = rec->real_quantity().data(RealQuantity::Index::TIME);
-    auto val = rec->real_quantity().data(RealQuantity::Index::BA_Y);
-    return QPointF(time, val);
-  };
+  { return rec->real_quantity().data(RealQuantity::Index::BA_X); };
   return std::views::all(m_records) | std::views::transform(proj) |
-         std::views::stride(stride()) | std::ranges::to<QList<QPointF>>();
+         std::ranges::to<QVector<double>>();
 }
 
-QList<QPointF> Log::t_ba_z_points() const
+QVector<double> Log::ba_y() const
 {
   auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  {
-    auto time = rec->real_quantity().data(RealQuantity::Index::TIME);
-    auto val = rec->real_quantity().data(RealQuantity::Index::BA_Z);
-    return QPointF(time, val);
-  };
+  { return rec->real_quantity().data(RealQuantity::Index::BA_Y); };
   return std::views::all(m_records) | std::views::transform(proj) |
-         std::views::stride(stride()) | std::ranges::to<QList<QPointF>>();
+         std::ranges::to<QVector<double>>();
 }
 
-QList<QPointF> Log::px_py_points() const
+QVector<double> Log::ba_z() const
 {
   auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  {
-    auto time = rec->real_quantity().data(RealQuantity::Index::P_X);
-    auto val = rec->real_quantity().data(RealQuantity::Index::P_Y);
-    return QPointF(time, val);
-  };
+  { return rec->real_quantity().data(RealQuantity::Index::BA_Z); };
   return std::views::all(m_records) | std::views::transform(proj) |
-         std::views::stride(stride()) | std::ranges::to<QList<QPointF>>();
+         std::ranges::to<QVector<double>>();
 }
 
-qsizetype Log::stride() const { return m_stride; }
+QVector<double> Log::px() const
+{
+  auto proj = [](const QSharedPointer<BaseRecord> &rec)
+  { return rec->real_quantity().data(RealQuantity::Index::P_X); };
+  return std::views::all(m_records) | std::views::transform(proj) |
+         std::ranges::to<QVector<double>>();
+}
+
+QVector<double> Log::py() const
+{
+  auto proj = [](const QSharedPointer<BaseRecord> &rec)
+  { return rec->real_quantity().data(RealQuantity::Index::P_Y); };
+  return std::views::all(m_records) | std::views::transform(proj) |
+         std::ranges::to<QVector<double>>();
+}
 
 void Log::parse(const QString &filename)
 {
@@ -383,8 +370,6 @@ void Log::parse(const QString &filename)
           [=]() { emit parse_finished(watcher->result()); });
   watcher->setFuture(future);
 }
-
-void Log::stride(qsizetype i) { m_stride = i; }
 
 void Log::clear() { m_records.clear(); }
 
