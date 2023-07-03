@@ -12,8 +12,8 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 
-#include "log/log.h"
 #include "proc/image.h"
+#include "proc/log.h"
 #include "ui/mainwindow.h"
 
 QT_USE_NAMESPACE
