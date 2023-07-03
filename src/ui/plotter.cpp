@@ -18,6 +18,7 @@ QCPGraph *Plotter::create_graph(const QString &name)
   assert(graph);
 
   graph->setName(name);
+  graph->setBrush(Qt::NoBrush);
 
   return graph;
 }
@@ -32,6 +33,7 @@ QCPGraph *Plotter::create_graph(const QString &name,
   auto minmaxy = std::minmax_element(values.cbegin(), values.cend());
   graph->keyAxis()->setRange(*minmaxx.first, *minmaxx.second);
   graph->valueAxis()->setRange(*minmaxy.first, *minmaxy.second);
+  replot();
   return graph;
 }
 

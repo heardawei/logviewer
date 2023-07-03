@@ -45,8 +45,8 @@ MainWindow::MainWindow(QWidget *parent)
   auto body_layout = new QGridLayout;
   body_layout->addWidget(m_img1, 0, 0, Qt::AlignCenter);
   body_layout->addWidget(m_img2, 0, 1, Qt::AlignCenter);
-  body_layout->addWidget(m_plotter1, 1, 0, Qt::AlignCenter);
-  body_layout->addWidget(m_plotter2, 1, 1, Qt::AlignCenter);
+  body_layout->addWidget(m_plotter1, 1, 0);
+  body_layout->addWidget(m_plotter2, 1, 1);
   body_layout->setRowStretch(0, 50);
   body_layout->setRowStretch(1, 50);
   body_layout->setColumnStretch(0, 50);
