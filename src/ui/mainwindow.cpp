@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
   m_px_py->setPen(QPen(Qt::GlobalColor::black));
   m_plotter2->set_scatter(m_px_py, true);
 
+  m_plotter1->set_capacity(100);
   m_plotter1->set_x_datetime_fmt();
   m_plotter1->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom |
                               QCP::iSelectPlottables);
@@ -136,7 +137,7 @@ void MainWindow::set_t_bg_x_points(const QVector<double> &x,
     return;
   }
   qDebug() << "t-bg.x: " << std::min(x.size(), y.size()) << " points";
-  qDebug() << "t: " << x.front() << " - " << x.back();
+  // qDebug() << "t: " << x.front() << " - " << x.back();
   m_plotter1->set_data(m_t_bg_x, x, y);
 }
 
@@ -148,7 +149,7 @@ void MainWindow::set_t_bg_y_points(const QVector<double> &x,
     return;
   }
   qDebug() << "t-bg.y: " << std::min(x.size(), y.size()) << " points";
-  qDebug() << "t: " << x.front() << " - " << x.back();
+  // qDebug() << "t: " << x.front() << " - " << x.back();
   m_plotter1->set_data(m_t_bg_y, x, y);
 }
 
@@ -160,7 +161,7 @@ void MainWindow::set_t_bg_z_points(const QVector<double> &x,
     return;
   }
   qDebug() << "t-bg.z: " << std::min(x.size(), y.size()) << " points";
-  qDebug() << "t: " << x.front() << " - " << x.back();
+  // qDebug() << "t: " << x.front() << " - " << x.back();
   m_plotter1->set_data(m_t_bg_z, x, y);
 }
 
@@ -172,7 +173,7 @@ void MainWindow::set_t_ba_x_points(const QVector<double> &x,
     return;
   }
   qDebug() << "t-ba.x: " << std::min(x.size(), y.size()) << " points";
-  qDebug() << "t: " << x.front() << " - " << x.back();
+  // qDebug() << "t: " << x.front() << " - " << x.back();
   m_plotter1->set_data(m_t_ba_x, x, y);
 }
 
@@ -184,7 +185,7 @@ void MainWindow::set_t_ba_y_points(const QVector<double> &x,
     return;
   }
   qDebug() << "t-ba.y: " << std::min(x.size(), y.size()) << " points";
-  qDebug() << "t: " << x.front() << " - " << x.back();
+  // qDebug() << "t: " << x.front() << " - " << x.back();
   m_plotter1->set_data(m_t_ba_y, x, y);
 }
 
@@ -196,7 +197,7 @@ void MainWindow::set_t_ba_z_points(const QVector<double> &x,
     return;
   }
   qDebug() << "t-ba.z: " << std::min(x.size(), y.size()) << " points";
-  qDebug() << "t: " << x.front() << " - " << x.back();
+  // qDebug() << "t: " << x.front() << " - " << x.back();
   m_plotter1->set_data(m_t_ba_z, x, y);
 }
 
@@ -208,8 +209,141 @@ void MainWindow::set_t_px_py_points(const QVector<double> &x,
     return;
   }
   qDebug() << "p.x-p.y: " << std::min(x.size(), y.size()) << " points";
-  qDebug() << "t: " << x.front() << " - " << x.back();
+  // qDebug() << "t: " << x.front() << " - " << x.back();
   m_plotter2->set_data(m_px_py, x, y);
+}
+
+void MainWindow::add_t_bg_x_points(double x, double y)
+{
+  // qDebug() << "t-bg.x: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_bg_x, x, y);
+}
+
+void MainWindow::add_t_bg_y_points(double x, double y)
+{
+  // qDebug() << "t-bg.y: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_bg_y, x, y);
+}
+
+void MainWindow::add_t_bg_z_points(double x, double y)
+{
+  // qDebug() << "t-bg.z: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_bg_z, x, y);
+}
+
+void MainWindow::add_t_ba_x_points(double x, double y)
+{
+  // qDebug() << "t-ba.x: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_ba_x, x, y);
+}
+
+void MainWindow::add_t_ba_y_points(double x, double y)
+{
+  // qDebug() << "t-ba.y: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_ba_y, x, y);
+}
+
+void MainWindow::add_t_ba_z_points(double x, double y)
+{
+  // qDebug() << "t-ba.z: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_ba_z, x, y);
+}
+
+void MainWindow::add_t_px_py_points(double x, double y)
+{
+  // qDebug() << "p.x-p.y: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter2->add_data(m_px_py, x, y);
+}
+
+void MainWindow::add_t_bg_x_points(const QVector<double> &x,
+                                   const QVector<double> &y)
+{
+  if (x.empty() || y.empty())
+  {
+    return;
+  }
+  qDebug() << "t-bg.x: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_bg_x, x, y);
+}
+
+void MainWindow::add_t_bg_y_points(const QVector<double> &x,
+                                   const QVector<double> &y)
+{
+  if (x.empty() || y.empty())
+  {
+    return;
+  }
+  qDebug() << "t-bg.y: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_bg_y, x, y);
+}
+
+void MainWindow::add_t_bg_z_points(const QVector<double> &x,
+                                   const QVector<double> &y)
+{
+  if (x.empty() || y.empty())
+  {
+    return;
+  }
+  qDebug() << "t-bg.z: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_bg_z, x, y);
+}
+
+void MainWindow::add_t_ba_x_points(const QVector<double> &x,
+                                   const QVector<double> &y)
+{
+  if (x.empty() || y.empty())
+  {
+    return;
+  }
+  qDebug() << "t-ba.x: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_ba_x, x, y);
+}
+
+void MainWindow::add_t_ba_y_points(const QVector<double> &x,
+                                   const QVector<double> &y)
+{
+  if (x.empty() || y.empty())
+  {
+    return;
+  }
+  qDebug() << "t-ba.y: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_ba_y, x, y);
+}
+
+void MainWindow::add_t_ba_z_points(const QVector<double> &x,
+                                   const QVector<double> &y)
+{
+  if (x.empty() || y.empty())
+  {
+    return;
+  }
+  qDebug() << "t-ba.z: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->add_data(m_t_ba_z, x, y);
+}
+
+void MainWindow::add_t_px_py_points(const QVector<double> &x,
+                                    const QVector<double> &y)
+{
+  if (x.empty() || y.empty())
+  {
+    return;
+  }
+  qDebug() << "p.x-p.y: " << std::min(x.size(), y.size()) << " points";
+  // qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter2->add_data(m_px_py, x, y);
 }
 
 void MainWindow::set_img1_files(QStringList imgs)

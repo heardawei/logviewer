@@ -7,6 +7,7 @@
 #include <QtCore/QPointF>
 #include <QtCore/QSharedPointer>
 #include <QtCore/QString>
+#include <QtCore/QThread>
 #include <QtCore/QVector>
 
 namespace logviewer
@@ -248,11 +249,21 @@ class GNSSRecord : public BaseRecord
   GNSSInputData m_input_data;
 };
 
-// 一行原始数据在这里开始解析
-class Record
+class LogReader : public QObject
 {
- public:
-  static QSharedPointer<BaseRecord> parse(const QStringList &toks);
+  Q_OBJECT
+
+ public slots:
+  void do_parse(const QString &filename);
+
+ signals:
+  void started();
+  void line_parsed(QSharedPointer<BaseRecord>);
+  void finished();
+  void error(const QString &);
+
+ protected:
+  QSharedPointer<BaseRecord> parse_line(const QString &line);
 };
 
 class Log : public QObject
@@ -262,28 +273,33 @@ class Log : public QObject
   Log(QObject *parent = nullptr);
   ~Log();
 
-  QVector<double> t() const;
-  QVector<double> bg_x() const;
-  QVector<double> bg_y() const;
-  QVector<double> bg_z() const;
-  QVector<double> ba_x() const;
-  QVector<double> ba_y() const;
-  QVector<double> ba_z() const;
-  QVector<double> px() const;
-  QVector<double> py() const;
+  double t(qsizetype i) const;
+  double bg_x(qsizetype i) const;
+  double bg_y(qsizetype i) const;
+  double bg_z(qsizetype i) const;
+  double ba_x(qsizetype i) const;
+  double ba_y(qsizetype i) const;
+  double ba_z(qsizetype i) const;
+  double px(qsizetype i) const;
+  double py(qsizetype i) const;
 
  signals:
-  void parse_finished(bool);
+  void started();
+  void line_parsed(qsizetype);
+  void finished();
+  void error(const QString &);
 
  public slots:
   void parse(const QString &filename);
   void clear();
 
- protected:
-  bool parse_line(const QString &line);
+ protected slots:
+  void on_line_parsed(QSharedPointer<BaseRecord> ptr);
 
  protected:
   QVector<QSharedPointer<BaseRecord>> m_records;
+  QThread m_reader_thread;
+  LogReader *m_reader;
 };
 
 }  // namespace logviewer

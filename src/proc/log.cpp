@@ -1,6 +1,7 @@
 #include "proc/log.h"
 
 #include <format>
+#include <span>
 
 #include <QtConcurrent/QtConcurrent>
 #include <QtCore/QFile>
@@ -210,8 +211,45 @@ bool GNSSRecord::parse_input_data(const QStringList &toks)
   return m_input_data.parse(toks);
 }
 
-QSharedPointer<BaseRecord> Record::parse(const QStringList &toks)
+void LogReader::do_parse(const QString &filename)
 {
+  QFile fin(filename);
+  if (!fin.open(QIODeviceBase::OpenModeFlag::ReadOnly))
+  {
+    auto e = QStringLiteral("打开文件失败: %1, 原因: %2")
+                 .arg(filename)
+                 .arg(fin.errorString());
+    qDebug() << e;
+    emit error(e);
+    return;
+  }
+
+  QTextStream sin(&fin);
+
+  while (true)
+  {
+    const auto &line = sin.readLine();
+    if (line.isEmpty())
+    {
+      break;
+    }
+
+    auto ptr = parse_line(line);
+    if (ptr)
+    {
+      emit line_parsed(ptr);
+    }
+    else
+    {
+      qWarning() << "parse line error";
+    }
+  }
+}
+
+QSharedPointer<BaseRecord> LogReader::parse_line(const QString &line)
+{
+  const auto toks = line.split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts);
+
   QSharedPointer<BaseRecord> ptr;
 
   if (toks.empty())
@@ -245,9 +283,13 @@ QSharedPointer<BaseRecord> Record::parse(const QStringList &toks)
     return ptr;
   }
 
+  auto views =
+      std::views::all(toks) |
+      std::views::transform([](const QString &s) { return QStringView(s); }) |
+      std::ranges::to<QList<QStringView>>();
+
   if (!ptr->parse(toks.sliced(1)))
   {
-    //
     ptr.clear();
   }
 
@@ -256,134 +298,82 @@ QSharedPointer<BaseRecord> Record::parse(const QStringList &toks)
 
 Log::Log(QObject *parent)
     : QObject(parent)
+    , m_reader(new LogReader)
 {
+  m_records.reserve(100000);
+  m_reader->moveToThread(&m_reader_thread);
+
+  connect(m_reader, &LogReader::started, this, &Log::started);
+  connect(m_reader, &LogReader::line_parsed, this, &Log::on_line_parsed);
+  connect(m_reader, &LogReader::finished, this, &Log::finished);
+  connect(m_reader, &LogReader::error, this, &Log::error);
+  m_reader_thread.start();
 }
 
-Log::~Log() {}
-
-QVector<double> Log::t() const
+Log::~Log()
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::TIME); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  m_reader->deleteLater();
+  m_reader_thread.quit();
+  m_reader_thread.wait();
 }
 
-QVector<double> Log::bg_x() const
+double Log::t(qsizetype i) const
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::BG_X); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::TIME);
 }
 
-QVector<double> Log::bg_y() const
+double Log::bg_x(qsizetype i) const
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::BG_Y); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::BG_X);
 }
 
-QVector<double> Log::bg_z() const
+double Log::bg_y(qsizetype i) const
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::BG_Z); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::BG_Y);
 }
 
-QVector<double> Log::ba_x() const
+double Log::bg_z(qsizetype i) const
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::BA_X); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::BG_Z);
 }
 
-QVector<double> Log::ba_y() const
+double Log::ba_x(qsizetype i) const
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::BA_Y); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::BA_X);
 }
 
-QVector<double> Log::ba_z() const
+double Log::ba_y(qsizetype i) const
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::BA_Z); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::BA_Y);
 }
 
-QVector<double> Log::px() const
+double Log::ba_z(qsizetype i) const
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::P_X); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::BA_Z);
 }
 
-QVector<double> Log::py() const
+double Log::px(qsizetype i) const
 {
-  auto proj = [](const QSharedPointer<BaseRecord> &rec)
-  { return rec->real_quantity().data(RealQuantity::Index::P_Y); };
-  return std::views::all(m_records) | std::views::transform(proj) |
-         std::ranges::to<QVector<double>>();
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::P_X);
+}
+
+double Log::py(qsizetype i) const
+{
+  return m_records.at(i)->real_quantity().data(RealQuantity::Index::P_Y);
 }
 
 void Log::parse(const QString &filename)
 {
-  auto parse_impl = [=](const QString &filename)
-  {
-    QFile fin(filename);
-    if (!fin.open(QIODeviceBase::OpenModeFlag::ReadOnly))
-    {
-      qDebug() << "打开文件失败: " << filename
-               << ", 原因: " << fin.errorString();
-      return false;
-    }
-
-    QTextStream sin(&fin);
-
-    while (true)
-    {
-      const auto &line = sin.readLine();
-      if (line.isEmpty())
-      {
-        break;
-      }
-      parse_line(line);
-    }
-
-    qDebug() << "parsed " << m_records.size() << " rows";
-
-    return true;
-  };
-
-  auto future = QtConcurrent::run(parse_impl, filename);
-  auto watcher = new QFutureWatcher<bool>;
-  connect(watcher,
-          &QFutureWatcher<bool>::finished,
-          this,
-          [=]() { emit parse_finished(watcher->result()); });
-  watcher->setFuture(future);
+  QTimer::singleShot(0, m_reader, [=]() { m_reader->do_parse(filename); });
 }
 
 void Log::clear() { m_records.clear(); }
 
-bool Log::parse_line(const QString &line)
+void Log::on_line_parsed(QSharedPointer<BaseRecord> ptr)
 {
-  auto ptr =
-      Record::parse(line.split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts));
-  if (!ptr)
-  {
-    return false;
-  }
-
+  auto size = m_records.size();
   m_records.emplace_back(std::move(ptr));
-  return true;
+  emit line_parsed(size);
 }
 
 }  // namespace logviewer

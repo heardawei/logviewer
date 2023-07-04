@@ -12,6 +12,10 @@ Plotter::Plotter(QWidget *parent)
 
 Plotter::~Plotter() {}
 
+int Plotter::capacity() const { return m_capacity; }
+
+void Plotter::set_capacity(int capacity) { m_capacity = capacity; }
+
 QCPGraph *Plotter::create_graph(const QString &name)
 {
   auto graph = addGraph();
@@ -29,21 +33,134 @@ void Plotter::set_data(QCPGraph *graph,
 {
   graph->setData(keys, values);
 
+  rescale_axis();
+
   if (m_sync_xy_range)
   {
-    // TODO(ldw): bug fixed: expand range, not replace range
-    const auto minmaxx = std::minmax_element(keys.cbegin(), keys.cend());
-    const auto minmaxy = std::minmax_element(values.cbegin(), values.cend());
-    const auto min = std::min(*minmaxx.first, *minmaxy.first);
-    const auto max = std::max(*minmaxx.second, *minmaxy.second);
-    graph->keyAxis()->setRange(min, max);
-    graph->valueAxis()->setRange(min, max);
+    const auto x_range = graph->keyAxis()->range();
+    const auto y_range = graph->valueAxis()->range();
+    const auto lower = std::min(x_range.lower, y_range.lower);
+    const auto upper = std::max(x_range.upper, y_range.upper);
+    graph->keyAxis()->setRange(lower, upper);
+    graph->valueAxis()->setRange(lower, upper);
+  }
+
+  replot(QCustomPlot::RefreshPriority::rpQueuedReplot);
+}
+
+void Plotter::add_data(QCPGraph *graph, double x, double y)
+{
+  if (cache_full(graph))
+  {
+    clear_cache(graph);
+  }
+
+  graph->addData(x, y);
+
+  rescale_axis();
+
+  if (m_sync_xy_range)
+  {
+    const auto x_range = graph->keyAxis()->range();
+    const auto y_range = graph->valueAxis()->range();
+    const auto lower = std::min(x_range.lower, y_range.lower);
+    const auto upper = std::max(x_range.upper, y_range.upper);
+    graph->keyAxis()->setRange(lower, upper);
+    graph->valueAxis()->setRange(lower, upper);
+  }
+
+  replot(QCustomPlot::RefreshPriority::rpQueuedReplot);
+}
+
+void Plotter::add_data(QCPGraph *graph,
+                       const QVector<double> &keys,
+                       const QVector<double> &values)
+{
+  if (cache_full(graph))
+  {
+    clear_cache(graph);
+  }
+
+  graph->addData(keys, values);
+
+  rescale_axis();
+
+  if (m_sync_xy_range)
+  {
+    const auto x_range = graph->keyAxis()->range();
+    const auto y_range = graph->valueAxis()->range();
+    const auto lower = std::min(x_range.lower, y_range.lower);
+    const auto upper = std::max(x_range.upper, y_range.upper);
+    graph->keyAxis()->setRange(lower, upper);
+    graph->valueAxis()->setRange(lower, upper);
+  }
+
+  replot(QCustomPlot::RefreshPriority::rpQueuedReplot);
+}
+
+void Plotter::set_sync_xy_range(bool enable) { m_sync_xy_range = enable; }
+
+void Plotter::set_scatter(QCPGraph *graph, bool enable)
+{
+  if (enable)
+  {
+    graph->setLineStyle(QCPGraph::LineStyle::lsNone);
+    graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDot, 1));
   }
   else
   {
-    rescale_axis();
+    graph->setLineStyle(QCPGraph::LineStyle::lsLine);
   }
-  replot();
+}
+
+void Plotter::set_scatter(bool enable)
+{
+  for (int i = 0; i < graphCount(); i++)
+  {
+    set_scatter(graph(i), enable);
+  }
+}
+
+void Plotter::rescale_axis()
+{
+  if (m_first_rescale)
+  {
+    rescaleAxes(true);
+    m_first_rescale = false;
+  }
+  else
+  {
+    rescaleAxes();
+  }
+}
+
+void Plotter::set_x_datetime_fmt()
+{
+  // configure bottom axis to show date instead of number:
+  auto dateTicker = QSharedPointer<QCPAxisTickerDateTime>::create();
+  dateTicker->setDateTimeFormat("HH:mm:ss.zzz\nyyyy-MM-dd");
+  xAxis->setTicker(dateTicker);
+}
+
+bool Plotter::cache_full(QCPGraph *graph) const
+{
+  return (capacity() > 0) && (graph->dataCount() > capacity());
+}
+
+void Plotter::clear_cache(QCPGraph *graph)
+{
+  //  graph->data()->clear();
+  for (int i = 0; i < graphCount(); i++)
+  {
+    this->graph(i)->data()->clear();
+  }
+  rescaleAxes();
+  m_first_rescale = true;
+}
+
+void Plotter::clear_cache_before(QCPGraph *graph, double x)
+{
+  graph->data()->removeBefore(x);
 }
 
 }  // namespace logviewer

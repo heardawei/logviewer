@@ -14,48 +14,41 @@ class Plotter : public QCustomPlot
   explicit Plotter(QWidget *parent = nullptr);
   virtual ~Plotter();
 
+  int capacity() const;
+  void set_capacity(int capacity);
+
   QCPGraph *create_graph(const QString &name);
   void set_data(QCPGraph *graph,
                 const QVector<double> &keys,
                 const QVector<double> &values);
 
-  void set_sync_xy_range(bool enable) { m_sync_xy_range = enable; }
+  void add_data(QCPGraph *graph, double keys, double values);
 
-  void set_scatter(QCPGraph *graph, bool enable)
-  {
-    if (enable)
-    {
-      graph->setLineStyle(QCPGraph::LineStyle::lsNone);
-      graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 1));
-    }
-    else
-    {
-      graph->setLineStyle(QCPGraph::LineStyle::lsLine);
-    }
-  }
+  void add_data(QCPGraph *graph,
+                const QVector<double> &keys,
+                const QVector<double> &values);
 
-  void rescale_axis()
-  {
-    if (m_first_rescale)
-    {
-      rescaleAxes(true);
-      m_first_rescale = false;
-    }
-    else
-    {
-      rescaleAxes();
-    }
-  }
+  void set_sync_xy_range(bool enable);
 
-  void set_x_datetime_fmt()
-  {
-    // configure bottom axis to show date instead of number:
-    auto dateTicker = QSharedPointer<QCPAxisTickerDateTime>::create();
-    dateTicker->setDateTimeFormat("HH:mm:ss.zzz\nyyyy-MM-dd");
-    xAxis->setTicker(dateTicker);
-  }
+  void set_scatter(QCPGraph *graph, bool enable);
+
+  void set_scatter(bool enable);
+
+  void rescale_axis();
+
+  void set_x_datetime_fmt();
+
+  bool cache_full(QCPGraph *graph) const;
+
+  void clear_cache(QCPGraph *graph);
+
+  void clear_cache_before(QCPGraph *graph, double x);
+
+ protected slots:
+  void replot_impl();
 
  protected:
+  int m_capacity{};
   bool m_sync_xy_range{};
   bool m_first_rescale{true};
 };

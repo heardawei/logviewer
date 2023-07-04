@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
-signals:
+ signals:
   void open_log(const QString &filename);
   void open_img1_dir(const QString &dir);
   void open_img2_dir(const QString &dir);
@@ -28,6 +28,23 @@ signals:
   void set_t_ba_y_points(const QVector<double> &x, const QVector<double> &y);
   void set_t_ba_z_points(const QVector<double> &x, const QVector<double> &y);
   void set_t_px_py_points(const QVector<double> &x, const QVector<double> &y);
+
+  void add_t_bg_x_points(double x, double y);
+  void add_t_bg_y_points(double x, double y);
+  void add_t_bg_z_points(double x, double y);
+  void add_t_ba_x_points(double x, double y);
+  void add_t_ba_y_points(double x, double y);
+  void add_t_ba_z_points(double x, double y);
+  void add_t_px_py_points(double x, double y);
+
+  void add_t_bg_x_points(const QVector<double>& x, const QVector<double>& y);
+  void add_t_bg_y_points(const QVector<double>& x, const QVector<double>& y);
+  void add_t_bg_z_points(const QVector<double>& x, const QVector<double>& y);
+  void add_t_ba_x_points(const QVector<double>& x, const QVector<double>& y);
+  void add_t_ba_y_points(const QVector<double>& x, const QVector<double>& y);
+  void add_t_ba_z_points(const QVector<double>& x, const QVector<double>& y);
+  void add_t_px_py_points(const QVector<double>& x, const QVector<double>& y);
+
   void set_img1_files(QStringList imgs);
   void set_img2_files(QStringList imgs);
 

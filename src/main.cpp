@@ -8,6 +8,7 @@
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QValueAxis>
 #include <QtCore/QDateTime>
+#include <QtCore/QElapsedTimer>
 #include <QtCore/QTimer>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
@@ -25,24 +26,28 @@ int main(int argc, char *argv[])
   using namespace logviewer;
 
   auto w = new MainWindow;
-  auto log = new Log(&a);
+  auto log = new Log;
   auto img_proc1 = new proc::ImageProc(&a);
   auto img_proc2 = new proc::ImageProc(&a);
 
-  auto parse_log_finished = [=](bool success)
+  auto on_line_parsed = [=](qsizetype i)
   {
-    if (!success)
+    QElapsedTimer t;
+    t.start();
+    w->add_t_bg_x_points(log->t(i), log->bg_x(i));
+    w->add_t_bg_y_points(log->t(i), log->bg_y(i));
+    w->add_t_bg_z_points(log->t(i), log->bg_z(i));
+    w->add_t_ba_x_points(log->t(i), log->ba_x(i));
+    w->add_t_ba_y_points(log->t(i), log->ba_y(i));
+    w->add_t_ba_z_points(log->t(i), log->ba_z(i));
+    if (i % 10 == 0)
     {
-      return;
+      w->add_t_px_py_points(log->px(i), log->py(i));
     }
-    w->set_t_bg_x_points(log->t(), log->bg_x());
-    w->set_t_bg_y_points(log->t(), log->bg_y());
-    w->set_t_bg_z_points(log->t(), log->bg_z());
-    w->set_t_ba_x_points(log->t(), log->ba_x());
-    w->set_t_ba_y_points(log->t(), log->ba_y());
-    w->set_t_ba_z_points(log->t(), log->ba_z());
-    w->set_t_px_py_points(log->px(), log->py());
+    qDebug() << i << ": " << t.elapsed();
   };
+
+  auto parse_log_finished = [=]() { qDebug() << "parse finished"; };
 
   auto load_img1_finished = [=](bool success)
   {
@@ -62,7 +67,8 @@ int main(int argc, char *argv[])
     w->set_img2_files(img_proc2->images());
   };
 
-  a.connect(log, &Log::parse_finished, w, parse_log_finished);
+  a.connect(log, &Log::line_parsed, w, on_line_parsed);
+  a.connect(log, &Log::finished, w, parse_log_finished);
   a.connect(w, &MainWindow::open_log, log, &Log::clear);
   a.connect(w, &MainWindow::open_log, log, &Log::parse);
 
@@ -73,6 +79,9 @@ int main(int argc, char *argv[])
   a.connect(img_proc2, &proc::ImageProc::load_finished, w, load_img2_finished);
   a.connect(w, &MainWindow::open_img2_dir, img_proc2, &proc::ImageProc::clear);
   a.connect(w, &MainWindow::open_img2_dir, img_proc2, &proc::ImageProc::load);
+
+  a.connect(&a, &QCoreApplication::aboutToQuit, &a, [=]() { delete w; });
+  a.connect(&a, &QCoreApplication::aboutToQuit, &a, [=]() { delete log; });
 
   w->resize(1024, 768);
   w->show();
