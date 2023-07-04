@@ -7,7 +7,7 @@ namespace logviewer
 Plotter::Plotter(QWidget *parent)
     : QCustomPlot(parent)
 {
-  replot();
+  legend->setVisible(true);
 }
 
 Plotter::~Plotter() {}
@@ -23,18 +23,27 @@ QCPGraph *Plotter::create_graph(const QString &name)
   return graph;
 }
 
-QCPGraph *Plotter::create_graph(const QString &name,
-                                const QVector<double> &keys,
-                                const QVector<double> &values)
+void Plotter::set_data(QCPGraph *graph,
+                       const QVector<double> &keys,
+                       const QVector<double> &values)
 {
-  auto graph = create_graph(name);
   graph->setData(keys, values);
-  auto minmaxx = std::minmax_element(keys.cbegin(), keys.cend());
-  auto minmaxy = std::minmax_element(values.cbegin(), values.cend());
-  graph->keyAxis()->setRange(*minmaxx.first, *minmaxx.second);
-  graph->valueAxis()->setRange(*minmaxy.first, *minmaxy.second);
+
+  if (m_sync_xy_range)
+  {
+    // TODO(ldw): bug fixed: expand range, not replace range
+    const auto minmaxx = std::minmax_element(keys.cbegin(), keys.cend());
+    const auto minmaxy = std::minmax_element(values.cbegin(), values.cend());
+    const auto min = std::min(*minmaxx.first, *minmaxy.first);
+    const auto max = std::max(*minmaxx.second, *minmaxy.second);
+    graph->keyAxis()->setRange(min, max);
+    graph->valueAxis()->setRange(min, max);
+  }
+  else
+  {
+    rescale_axis();
+  }
   replot();
-  return graph;
 }
 
 }  // namespace logviewer

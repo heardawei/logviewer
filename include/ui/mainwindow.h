@@ -48,6 +48,13 @@ signals:
   ImageViewer *m_img2{};
   Plotter *m_plotter1{};
   Plotter *m_plotter2{};
+  QCPGraph *m_t_bg_x{};
+  QCPGraph *m_t_bg_y{};
+  QCPGraph *m_t_bg_z{};
+  QCPGraph *m_t_ba_x{};
+  QCPGraph *m_t_ba_y{};
+  QCPGraph *m_t_ba_z{};
+  QCPGraph *m_px_py{};
 };
 
 }  // namespace logviewer

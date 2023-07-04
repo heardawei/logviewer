@@ -24,7 +24,51 @@ MainWindow::MainWindow(QWidget *parent)
     , m_img2(new ImageViewer)
     , m_plotter1(new Plotter)
     , m_plotter2(new Plotter)
+    , m_t_bg_x(m_plotter1->addGraph())
+    , m_t_bg_y(m_plotter1->addGraph())
+    , m_t_bg_z(m_plotter1->addGraph())
+    , m_t_ba_x(m_plotter1->addGraph())
+    , m_t_ba_y(m_plotter1->addGraph())
+    , m_t_ba_z(m_plotter1->addGraph())
+    , m_px_py(m_plotter2->addGraph())
+
 {
+  m_t_bg_x->setName("t-bg.x");
+  m_t_bg_x->setPen(QPen(Qt::GlobalColor::black));
+  // m_plotter1->set_scatter(m_t_bg_x, true);
+
+  m_t_bg_y->setName("t-bg.y");
+  m_t_bg_y->setPen(QPen(Qt::GlobalColor::gray));
+  // m_plotter1->set_scatter(m_t_bg_y, true);
+
+  m_t_bg_z->setName("t-bg.z");
+  m_t_bg_z->setPen(QPen(Qt::GlobalColor::red));
+  // m_plotter1->set_scatter(m_t_bg_z, true);
+
+  m_t_ba_y->setName("t-ba.y");
+  m_t_ba_y->setPen(QPen(Qt::GlobalColor::blue));
+  // m_plotter1->set_scatter(m_t_ba_y, true);
+
+  m_t_ba_z->setName("t-ba.z");
+  m_t_ba_z->setPen(QPen(Qt::GlobalColor::magenta));
+  // m_plotter1->set_scatter(m_t_ba_z, true);
+
+  m_t_ba_x->setName("t-ba.x");
+  m_t_ba_x->setPen(QPen(Qt::GlobalColor::green));
+  // m_plotter1->set_scatter(m_t_ba_x, true);
+
+  m_px_py->setName("p.x-p.y");
+  m_px_py->setPen(QPen(Qt::GlobalColor::black));
+  m_plotter2->set_scatter(m_px_py, true);
+
+  m_plotter1->set_x_datetime_fmt();
+  m_plotter1->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom |
+                              QCP::iSelectPlottables);
+
+  m_plotter2->set_sync_xy_range(true);
+  m_plotter2->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom |
+                              QCP::iSelectPlottables);
+
   auto test_pb = new QPushButton("测试数据");
   auto open_log_pb = new QPushButton("打开日志文件");
   auto open_img1_pb = new QPushButton("打开图片1");
@@ -91,8 +135,9 @@ void MainWindow::set_t_bg_x_points(const QVector<double> &x,
   {
     return;
   }
-  qDebug() << "t-bg.x: " << x.size() << " points";
-  m_plotter1->create_graph("t-bg.x", x, y);
+  qDebug() << "t-bg.x: " << std::min(x.size(), y.size()) << " points";
+  qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->set_data(m_t_bg_x, x, y);
 }
 
 void MainWindow::set_t_bg_y_points(const QVector<double> &x,
@@ -102,8 +147,9 @@ void MainWindow::set_t_bg_y_points(const QVector<double> &x,
   {
     return;
   }
-  qDebug() << "t-bg.y: " << x.size() << " points";
-  m_plotter1->create_graph("t-bg.y", x, y);
+  qDebug() << "t-bg.y: " << std::min(x.size(), y.size()) << " points";
+  qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->set_data(m_t_bg_y, x, y);
 }
 
 void MainWindow::set_t_bg_z_points(const QVector<double> &x,
@@ -113,8 +159,9 @@ void MainWindow::set_t_bg_z_points(const QVector<double> &x,
   {
     return;
   }
-  qDebug() << "t-bg.z: " << x.size() << " points";
-  m_plotter1->create_graph("t-bg.z", x, y);
+  qDebug() << "t-bg.z: " << std::min(x.size(), y.size()) << " points";
+  qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->set_data(m_t_bg_z, x, y);
 }
 
 void MainWindow::set_t_ba_x_points(const QVector<double> &x,
@@ -124,8 +171,9 @@ void MainWindow::set_t_ba_x_points(const QVector<double> &x,
   {
     return;
   }
-  qDebug() << "t-ba.x: " << x.size() << " points";
-  m_plotter1->create_graph("t-ba.x", x, y);
+  qDebug() << "t-ba.x: " << std::min(x.size(), y.size()) << " points";
+  qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->set_data(m_t_ba_x, x, y);
 }
 
 void MainWindow::set_t_ba_y_points(const QVector<double> &x,
@@ -135,8 +183,9 @@ void MainWindow::set_t_ba_y_points(const QVector<double> &x,
   {
     return;
   }
-  qDebug() << "t-ba.y: " << x.size() << " points";
-  m_plotter1->create_graph("t-ba.y", x, y);
+  qDebug() << "t-ba.y: " << std::min(x.size(), y.size()) << " points";
+  qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->set_data(m_t_ba_y, x, y);
 }
 
 void MainWindow::set_t_ba_z_points(const QVector<double> &x,
@@ -146,8 +195,9 @@ void MainWindow::set_t_ba_z_points(const QVector<double> &x,
   {
     return;
   }
-  qDebug() << "t-ba.z: " << x.size() << " points";
-  m_plotter1->create_graph("t-ba.z", x, y);
+  qDebug() << "t-ba.z: " << std::min(x.size(), y.size()) << " points";
+  qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter1->set_data(m_t_ba_z, x, y);
 }
 
 void MainWindow::set_t_px_py_points(const QVector<double> &x,
@@ -157,8 +207,9 @@ void MainWindow::set_t_px_py_points(const QVector<double> &x,
   {
     return;
   }
-  qDebug() << "p.x-p.y: " << x.size() << " points";
-  m_plotter2->create_graph("p.x-p.y", x, y);
+  qDebug() << "p.x-p.y: " << std::min(x.size(), y.size()) << " points";
+  qDebug() << "t: " << x.front() << " - " << x.back();
+  m_plotter2->set_data(m_px_py, x, y);
 }
 
 void MainWindow::set_img1_files(QStringList imgs)
@@ -289,7 +340,7 @@ void MainWindow::generate_plotter_samples()
   std::random_device r;
   std::default_random_engine e(r());
 
-  constexpr auto samples = 100;
+  constexpr auto samples = 1000;
 
   std::uniform_real_distribution<double> u_t_bg_x(0, 50);
   std::uniform_real_distribution<double> u_t_bg_y(40, 100);
@@ -334,12 +385,12 @@ void MainWindow::generate_plotter_samples()
       std::views::transform([&](int) { return u_t_ba_z(e); }) |
       std::ranges::to<QVector<double>>();
 
-  m_plotter1->create_graph("t-bg.x", times, samples_t_bg_x);
-  m_plotter1->create_graph("t-bg.y", times, samples_t_bg_y);
-  m_plotter1->create_graph("t-bg.z", times, samples_t_bg_z);
-  m_plotter1->create_graph("t-ba.x", times, samples_t_ba_x);
-  m_plotter1->create_graph("t-ba.y", times, samples_t_ba_y);
-  m_plotter1->create_graph("t-ba.z", times, samples_t_ba_z);
+  m_plotter1->set_data(m_t_bg_x, times, samples_t_bg_x);
+  m_plotter1->set_data(m_t_bg_y, times, samples_t_bg_y);
+  m_plotter1->set_data(m_t_bg_z, times, samples_t_bg_z);
+  m_plotter1->set_data(m_t_ba_x, times, samples_t_ba_x);
+  m_plotter1->set_data(m_t_ba_y, times, samples_t_ba_y);
+  m_plotter1->set_data(m_t_ba_z, times, samples_t_ba_z);
 }
 
 void MainWindow::generate_traj_samples()
@@ -347,7 +398,7 @@ void MainWindow::generate_traj_samples()
   std::random_device r;
   std::default_random_engine e(r());
 
-  constexpr auto samples = 5;
+  constexpr auto samples = 500;
 
   auto times =
       std::views::iota(0, samples) |
@@ -374,7 +425,7 @@ void MainWindow::generate_traj_samples()
           }) |
       std::ranges::to<QVector<double>>();
 
-  m_plotter2->create_graph("p.x-p.y", samples_px, samples_py);
+  m_plotter2->set_data(m_px_py, samples_px, samples_py);
 }
 
 }  // namespace logviewer
