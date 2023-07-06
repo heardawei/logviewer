@@ -105,7 +105,7 @@ void Plotter::set_scatter(QCPGraph *graph, bool enable)
   if (enable)
   {
     graph->setLineStyle(QCPGraph::LineStyle::lsNone);
-    graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDot, 1));
+    graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDot, 2));
   }
   else
   {

@@ -25,66 +25,45 @@ int main(int argc, char *argv[])
 
   using namespace logviewer;
 
-  auto w = new MainWindow;
-  auto log = new Log;
-  auto img_proc1 = new proc::ImageProc(&a);
-  auto img_proc2 = new proc::ImageProc(&a);
+  Log log;
+  proc::ImageProc img1;
+  proc::ImageProc img2;
+  MainWindow w;
 
-  auto on_line_parsed = [=](qsizetype i)
-  {
-    QElapsedTimer t;
-    t.start();
-    w->add_t_bg_x_points(log->t(i), log->bg_x(i));
-    w->add_t_bg_y_points(log->t(i), log->bg_y(i));
-    w->add_t_bg_z_points(log->t(i), log->bg_z(i));
-    w->add_t_ba_x_points(log->t(i), log->ba_x(i));
-    w->add_t_ba_y_points(log->t(i), log->ba_y(i));
-    w->add_t_ba_z_points(log->t(i), log->ba_z(i));
-    if (i % 10 == 0)
-    {
-      w->add_t_px_py_points(log->px(i), log->py(i));
-    }
-    qDebug() << i << ": " << t.elapsed();
-  };
-
-  auto parse_log_finished = [=]() { qDebug() << "parse finished"; };
-
-  auto load_img1_finished = [=](bool success)
+  auto load_img1_finished = [&](bool success)
   {
     if (!success)
     {
       return;
     }
-    w->set_img1_files(img_proc1->images());
+    w.set_img1_files(img1.images());
   };
 
-  auto load_img2_finished = [=](bool success)
+  auto load_img2_finished = [&](bool success)
   {
     if (!success)
     {
       return;
     }
-    w->set_img2_files(img_proc2->images());
+    w.set_img2_files(img2.images());
   };
 
-  a.connect(log, &Log::line_parsed, w, on_line_parsed);
-  a.connect(log, &Log::finished, w, parse_log_finished);
-  a.connect(w, &MainWindow::open_log, log, &Log::clear);
-  a.connect(w, &MainWindow::open_log, log, &Log::parse);
+  w.register_handler(std::bind(
+      &Log::get_until, &log, std::placeholders::_1, std::placeholders::_2));
 
-  a.connect(img_proc1, &proc::ImageProc::load_finished, w, load_img1_finished);
-  a.connect(w, &MainWindow::open_img1_dir, img_proc1, &proc::ImageProc::clear);
-  a.connect(w, &MainWindow::open_img1_dir, img_proc1, &proc::ImageProc::load);
+  a.connect(&w, &MainWindow::open_log, &log, &Log::clear);
+  a.connect(&w, &MainWindow::open_log, &log, &Log::parse);
 
-  a.connect(img_proc2, &proc::ImageProc::load_finished, w, load_img2_finished);
-  a.connect(w, &MainWindow::open_img2_dir, img_proc2, &proc::ImageProc::clear);
-  a.connect(w, &MainWindow::open_img2_dir, img_proc2, &proc::ImageProc::load);
+  a.connect(&img1, &proc::ImageProc::load_finished, &w, load_img1_finished);
+  a.connect(&w, &MainWindow::open_img1_dir, &img1, &proc::ImageProc::clear);
+  a.connect(&w, &MainWindow::open_img1_dir, &img1, &proc::ImageProc::load);
 
-  a.connect(&a, &QCoreApplication::aboutToQuit, &a, [=]() { delete w; });
-  a.connect(&a, &QCoreApplication::aboutToQuit, &a, [=]() { delete log; });
+  a.connect(&img2, &proc::ImageProc::load_finished, &w, load_img2_finished);
+  a.connect(&w, &MainWindow::open_img2_dir, &img2, &proc::ImageProc::clear);
+  a.connect(&w, &MainWindow::open_img2_dir, &img2, &proc::ImageProc::load);
 
-  w->resize(1024, 768);
-  w->show();
+  w.resize(1024, 768);
+  w.show();
 
   return a.exec();
 }

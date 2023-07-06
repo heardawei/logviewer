@@ -29,7 +29,6 @@ class ImageViewer : public Image
 {
   Q_OBJECT
  public:
-  Q_PROPERTY(bool loop READ loop WRITE set_loop NOTIFY loop_changed)
   Q_PROPERTY(qsizetype index READ index NOTIFY index_changed)
 
   ImageViewer(QWidget *parent = nullptr);
@@ -37,16 +36,13 @@ class ImageViewer : public Image
 
   QStringList images() const;
   qsizetype index() const;
-  bool loop() const;
 
  signals:
-  void loop_changed(bool);
   void index_changed(int);
 
  public slots:
-  void play();
-  void set_loop(bool loop);
   void set_images(QStringList images);
+  void play_until(double time_ms);
 
  private slots:
   void on_next_image_requested();
@@ -54,10 +50,10 @@ class ImageViewer : public Image
 
  private:
   QStringList m_images;
-  QVector<int> m_ms_intervals;
-  bool m_loop{true};
+  QVector<double> m_image_times;
   qsizetype m_index{};
   QTimer m_timer;
+  double m_play_until_time{};
 };
 
 }  // namespace logviewer

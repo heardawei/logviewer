@@ -87,6 +87,7 @@
         "qchartview": "cpp",
         "qscatterseries": "cpp",
         "qobject": "cpp",
-        "qstringlist": "cpp"
+        "qstringlist": "cpp",
+        "qthread": "cpp"
     }
 }

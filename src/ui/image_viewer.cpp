@@ -5,6 +5,8 @@
 #include <ranges>
 #include <utility>
 
+#include <QFileInfo>
+
 namespace logviewer
 {
 
@@ -27,9 +29,8 @@ void Image::filename(QString filename)
 ImageViewer::ImageViewer(QWidget *parent)
     : Image(parent)
 {
-  m_timer.setSingleShot(true);
   connect(
-      &m_timer, &QTimer::timeout, this, &ImageViewer::on_next_image_requested);
+      &m_timer, &QTimer::timeout, this, &ImageViewer::on_next_image_requested, Qt::ConnectionType::DirectConnection);
 }
 
 ImageViewer::~ImageViewer() {}
@@ -38,86 +39,63 @@ QStringList ImageViewer::images() const { return m_images; }
 
 qsizetype ImageViewer::index() const { return m_index; }
 
-bool ImageViewer::loop() const { return m_loop; }
-
-void ImageViewer::play()
-{
-  // auto base_time = 
-}
-
-void ImageViewer::set_loop(bool loop)
-{
-  m_loop = loop;
-  emit loop_changed(m_loop);
-}
-
 void ImageViewer::set_images(QStringList images)
 {
-  if (images.empty())
-  {
+  auto parse_file_time = [](const auto &img)
+  { return QFileInfo(img).completeBaseName().toDouble(); };
+  m_images = std::move(images);
+  m_image_times = std::views::all(m_images) |
+                  std::views::transform(parse_file_time) |
+                  std::ranges::to<QVector<double>>();
+  set_index(0);
+}
+
+void ImageViewer::play_until(double time)
+{
+  m_play_until_time = time;
+
+  auto next = index() + 1;
+
+  if (next >= m_images.size())
+  {  // 已显示最后一张图片
     return;
   }
-  auto filename_to_time = [](const QString &filename)
-  {
-    std::filesystem::path filepath(filename.toStdString());
-    auto stem = QString::fromStdString(filepath.stem().generic_string());
-    return stem.toDouble();
-  };
-  auto prev_time = filename_to_time(images.front());
-  auto calc_interval = [&](double next_time)
-  {
-    auto interval = std::max(next_time - prev_time, 0.0);
-    prev_time = next_time;
-    return std::round(interval * 1000);
-  };
-  m_ms_intervals.reserve(images.size());
 
-  m_ms_intervals = std::views::all(images.sliced(1)) |
-                   std::views::transform(filename_to_time) |
-                   std::views::transform(calc_interval) |
-                   std::ranges::to<QVector<int>>();
-  m_images = std::move(images);
+  if (m_image_times[next] > m_play_until_time)
+  {  // 没有更多图片可供显示
+    return;
+  }
 
-  Q_ASSERT_X(m_ms_intervals.size() + 1 == m_images.size(),
-             __FUNCTION__,
-             "n张图片必须有n-1个间隔");
+  qDebug() << "预备显示图片: " << m_images[next] << ", 直到: " << m_play_until_time;
 
-  set_index(0);
-
-  m_timer.start(1);
+  set_index(next);
 }
 
 void ImageViewer::on_next_image_requested()
 {
-  auto index = property("index").toLongLong();
-  qDebug() << "开始显示第" << index << "张图片: " << m_images[index];
+  auto next = index() + 1;
 
-  filename(m_images[index]);  // 设置图片
+  if (next >= m_images.size())
+  {  // 已显示最后一张图片
+    m_timer.stop();
+    return;
+  }
 
-  if (index < m_ms_intervals.size())
-  {
-    qDebug() << "下一张图片将在 " << m_ms_intervals[index] << "ms 后开始播放";
-    set_index(index + 1);
-    m_timer.start(m_ms_intervals[index]);
+  if (m_image_times[next] > m_play_until_time)
+  {  // 没有更多图片可供显示
+    m_timer.stop();
+    return;
   }
-  else
-  {  // 由于n张图片，只有n-1个间隔，"这是最后一张图片"
-    if (loop())
-    {
-      qDebug() << "这是最后一张图片，下一轮将在 1000ms 后从头播放";
-      set_index(0);
-      m_timer.start(1000);  // 最后一张图片默认播放1000ms
-    }
-    else
-    {
-      qDebug() << "这是最后一张图片，播放停止";
-    }
-  }
+
+  qDebug() << "显示图片: " << m_images[next] << ", 直到: " << m_play_until_time;
+
+  set_index(next);
 }
 
 void ImageViewer::set_index(qsizetype index)
 {
   m_index = index;
+  filename(m_images[m_index]);
   emit index_changed(m_index);
 }
 

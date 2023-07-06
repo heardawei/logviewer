@@ -10,207 +10,6 @@
 
 namespace logviewer
 {
-namespace
-{
-double to_double(const QString &str) { return str.toDouble(); }
-}  // namespace
-
-bool RealListData::parse(const QStringList &toks)
-{
-  if (toks.size() != cols())
-  {
-    return false;
-  }
-
-  m_data = std::views::all(toks) | std::views::transform(to_double) |
-           std::ranges::to<QVector<double>>();
-
-  return true;
-}
-
-QVector<double> &RealListData::data() { return m_data; }
-
-const QVector<double> &RealListData::data() const { return m_data; }
-
-double &RealListData::operator[](qsizetype i) { return m_data[i]; }
-
-const double &RealListData::operator[](qsizetype i) const { return m_data[i]; }
-
-constexpr qsizetype IMUInputData::cols() const
-{
-  return std::to_underlying(Index::MAX);
-}
-
-double &IMUInputData::operator[](Index idx)
-{
-  return m_data[std::to_underlying(idx)];
-}
-
-const double &IMUInputData::operator[](Index idx) const
-{
-  return m_data[std::to_underlying(idx)];
-}
-
-constexpr qsizetype OdomInputData::cols() const
-{
-  return std::to_underlying(Index::MAX);
-}
-
-double &OdomInputData::operator[](Index idx)
-{
-  return m_data[std::to_underlying(idx)];
-}
-
-const double &OdomInputData::operator[](Index idx) const
-{
-  return m_data[std::to_underlying(idx)];
-}
-
-constexpr qsizetype CameraInputData::cols() const
-{
-  return std::to_underlying(Index::MAX);
-}
-
-double &CameraInputData::operator[](Index idx)
-{
-  return m_data[std::to_underlying(idx)];
-}
-
-const double &CameraInputData::operator[](Index idx) const
-{
-  return m_data[std::to_underlying(idx)];
-}
-
-double &Quantity::data(Index idx) { return m_data[std::to_underlying(idx)]; }
-
-const double &Quantity::data(Index idx) const
-{
-  return m_data[std::to_underlying(idx)];
-}
-
-constexpr qsizetype Quantity::cols() const
-{
-  return std::to_underlying(Index::MAX);
-}
-
-constexpr qsizetype StateQuantityCovariance::cols() const { return 18 * 18; }
-
-bool BaseRecord::parse(const QStringList &toks)
-{
-  auto size = input_data_cols() + m_real_quantity.cols() +
-              m_state_quantity.cols() + m_state_quantity_covariance.cols();
-  if (toks.size() != size)
-  {
-    qDebug() << std::format("{} != {} ({} + {} + {} + {})",
-                            toks.size(),
-                            size,
-                            input_data_cols(),
-                            m_real_quantity.cols(),
-                            m_state_quantity.cols(),
-                            m_state_quantity_covariance.cols())
-                    .data();
-    return false;
-  }
-
-  // 解析传感器输入数据
-  qsizetype offset = 0;
-  qsizetype count = input_data_cols();
-  if (!parse_input_data(toks.sliced(offset, count)))
-  {
-    return false;
-  }
-
-  // 解析真实量
-  offset += count;
-  count = m_real_quantity.cols();
-  if (!m_real_quantity.parse(toks.sliced(offset, count)))
-  {
-    return false;
-  }
-
-  // 解析状态量
-  offset += count;
-  count = m_state_quantity.cols();
-  if (!m_state_quantity.parse(toks.sliced(offset, count)))
-  {
-    return false;
-  }
-
-  // 解析状态量协方差
-  offset += count;
-  count = m_state_quantity_covariance.cols();
-  // TODO(ldw): optimiz
-  // if (!m_state_quantity_covariance.parse(toks.sliced(offset, count)))
-  // {
-  //   return false;
-  // }
-
-  return true;
-}
-
-RealQuantity &BaseRecord::real_quantity() { return m_real_quantity; }
-
-StateQuantity &BaseRecord::state_quantity() { return m_state_quantity; }
-
-StateQuantityCovariance &BaseRecord::state_quantity_covariance()
-{
-  return m_state_quantity_covariance;
-}
-
-const RealQuantity &BaseRecord::real_quantity() const
-{
-  return m_real_quantity;
-}
-
-const StateQuantity &BaseRecord::state_quantity() const
-{
-  return m_state_quantity;
-}
-
-const StateQuantityCovariance &BaseRecord::state_quantity_covariance() const
-{
-  return m_state_quantity_covariance;
-}
-
-BaseRecord::SensorType IMURecord::sensor_type() { return SensorType::IMU; }
-
-qsizetype IMURecord::input_data_cols() const { return m_input_data.cols(); }
-
-bool IMURecord::parse_input_data(const QStringList &toks)
-{
-  return m_input_data.parse(toks);
-}
-
-BaseRecord::SensorType OdomRecord::sensor_type() { return SensorType::ODOM; }
-
-qsizetype OdomRecord::input_data_cols() const { return m_input_data.cols(); }
-
-bool OdomRecord::parse_input_data(const QStringList &toks)
-{
-  return m_input_data.parse(toks);
-}
-
-BaseRecord::SensorType CameraRecord::sensor_type()
-{
-  return SensorType::CAMERA;
-}
-
-qsizetype CameraRecord::input_data_cols() const { return m_input_data.cols(); }
-
-bool CameraRecord::parse_input_data(const QStringList &toks)
-{
-  return m_input_data.parse(toks);
-}
-
-BaseRecord::SensorType GNSSRecord::sensor_type() { return SensorType::GNSS; }
-
-qsizetype GNSSRecord::input_data_cols() const { return m_input_data.cols(); }
-
-bool GNSSRecord::parse_input_data(const QStringList &toks)
-{
-  return m_input_data.parse(toks);
-}
-
 void LogReader::do_parse(const QString &filename)
 {
   QFile fin(filename);
@@ -246,11 +45,11 @@ void LogReader::do_parse(const QString &filename)
   }
 }
 
-QSharedPointer<BaseRecord> LogReader::parse_line(const QString &line)
+BaseRecordPtr LogReader::parse_line(const QString &line)
 {
   const auto toks = line.split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts);
 
-  QSharedPointer<BaseRecord> ptr;
+  BaseRecordPtr ptr;
 
   if (toks.empty())
   {
@@ -268,29 +67,29 @@ QSharedPointer<BaseRecord> LogReader::parse_line(const QString &line)
   switch (type)
   {
   case BaseRecord::SensorType::IMU:
-    ptr = QSharedPointer<IMURecord>::create();
+    ptr = std::make_shared<IMURecord>();
     break;
   case BaseRecord::SensorType::ODOM:
-    ptr = QSharedPointer<OdomRecord>::create();
+    ptr = std::make_shared<OdomRecord>();
     break;
   case BaseRecord::SensorType::CAMERA:
-    ptr = QSharedPointer<CameraRecord>::create();
+    ptr = std::make_shared<CameraRecord>();
     break;
   case BaseRecord::SensorType::GNSS:
-    ptr = QSharedPointer<GNSSRecord>::create();
+    ptr = std::make_shared<GNSSRecord>();
     break;
   default:
     return ptr;
   }
 
   auto views =
-      std::views::all(toks) |
-      std::views::transform([](const QString &s) { return QStringView(s); }) |
-      std::ranges::to<QList<QStringView>>();
+      std::views::all(toks) | std::views::drop(1) |
+      std::views::transform([](const QString &s) { return s.toStdString(); }) |
+      std::ranges::to<std::vector<std::string>>();
 
-  if (!ptr->parse(toks.sliced(1)))
+  if (!ptr->parse(views))
   {
-    ptr.clear();
+    ptr.reset();
   }
 
   return ptr;
@@ -302,18 +101,18 @@ Log::Log(QObject *parent)
 {
   m_records.reserve(100000);
   m_reader->moveToThread(&m_reader_thread);
-
+  m_reader->setParent(&m_reader_thread);
   connect(m_reader, &LogReader::started, this, &Log::started);
   connect(m_reader, &LogReader::line_parsed, this, &Log::on_line_parsed);
   connect(m_reader, &LogReader::finished, this, &Log::finished);
+  connect(m_reader, &LogReader::finished, this, [=]() { m_running = false; });
   connect(m_reader, &LogReader::error, this, &Log::error);
   m_reader_thread.start();
 }
 
 Log::~Log()
 {
-  m_reader->deleteLater();
-  m_reader_thread.quit();
+  m_reader_thread.terminate();  // TODO(ldw): replace with quit()
   m_reader_thread.wait();
 }
 
@@ -362,14 +161,44 @@ double Log::py(qsizetype i) const
   return m_records.at(i)->real_quantity().data(RealQuantity::Index::P_Y);
 }
 
+bool Log::get_until(double elapse, QVector<BaseRecordPtr> &records)
+{
+  if (m_index >= m_records.size() || m_records.empty())
+  {
+    return m_running;
+  }
+
+  const auto base_time =
+      m_records.front()->real_quantity().data(RealQuantity::Index::TIME);
+  const auto curr_time = base_time + elapse;
+
+  auto beg = m_records.begin();
+  std::advance(beg, m_index);
+
+  const auto end = std::find_if(
+      beg,
+      m_records.end(),
+      [=](BaseRecordPtr p) {
+        return curr_time < p->real_quantity().data(RealQuantity::Index::TIME);
+      });
+
+  const auto size = std::distance(beg, end);
+  records.reserve(size);
+  records = std::decay_t<decltype(records)>(beg, end);
+  m_index += size;
+
+  return true;
+}
+
 void Log::parse(const QString &filename)
 {
+  m_running = true;
   QTimer::singleShot(0, m_reader, [=]() { m_reader->do_parse(filename); });
 }
 
 void Log::clear() { m_records.clear(); }
 
-void Log::on_line_parsed(QSharedPointer<BaseRecord> ptr)
+void Log::on_line_parsed(BaseRecordPtr ptr)
 {
   auto size = m_records.size();
   m_records.emplace_back(std::move(ptr));

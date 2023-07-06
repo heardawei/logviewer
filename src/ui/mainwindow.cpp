@@ -6,7 +6,9 @@
 #include <ranges>
 
 #include <QtCore/QDir>
+#include <QtCore/QElapsedTimer>
 #include <QtCore/QSettings>
+#include <QtCore/QTimer>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QGridLayout>
@@ -20,6 +22,10 @@ namespace logviewer
 {
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
+    , open_log_pb(new QPushButton("打开日志文件"))
+    , open_img1_pb(new QPushButton("打开1类图片"))
+    , open_img2_pb(new QPushButton("打开2类图片"))
+    , play_pb(new QPushButton("播放▶"))
     , m_img1(new ImageViewer)
     , m_img2(new ImageViewer)
     , m_plotter1(new Plotter)
@@ -58,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
   // m_plotter1->set_scatter(m_t_ba_x, true);
 
   m_px_py->setName("p.x-p.y");
-  m_px_py->setPen(QPen(Qt::GlobalColor::black));
+  m_px_py->setPen(QPen(Qt::GlobalColor::red));
   m_plotter2->set_scatter(m_px_py, true);
 
   m_plotter1->set_capacity(100);
@@ -70,18 +76,11 @@ MainWindow::MainWindow(QWidget *parent)
   m_plotter2->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom |
                               QCP::iSelectPlottables);
 
-  auto test_pb = new QPushButton("测试数据");
-  auto open_log_pb = new QPushButton("打开日志文件");
-  auto open_img1_pb = new QPushButton("打开图片1");
-  auto open_img2_pb = new QPushButton("打开图片2");
-  auto refresh_pb = new QPushButton("刷新");
-
   auto header_layout = new QHBoxLayout;
-  header_layout->addWidget(test_pb);
   header_layout->addWidget(open_log_pb);
   header_layout->addWidget(open_img1_pb);
   header_layout->addWidget(open_img2_pb);
-  header_layout->addWidget(refresh_pb);
+  header_layout->addWidget(play_pb);
   header_layout->addStretch();
 
   auto header = new QWidget;
@@ -109,7 +108,8 @@ MainWindow::MainWindow(QWidget *parent)
 
   setCentralWidget(central);
 
-  connect(test_pb, &QPushButton::clicked, this, [=]() { generate_samples(); });
+  // connect(test_pb, &QPushButton::clicked, this, [=]() { generate_samples();
+  // });
 
   connect(open_log_pb,
           &QPushButton::clicked,
@@ -125,6 +125,8 @@ MainWindow::MainWindow(QWidget *parent)
           &QPushButton::clicked,
           this,
           &MainWindow::on_open_img2_clicked);
+
+  connect(play_pb, &QPushButton::clicked, this, &MainWindow::on_play_clicked);
 }
 
 MainWindow::~MainWindow() {}
@@ -346,6 +348,12 @@ void MainWindow::add_t_px_py_points(const QVector<double> &x,
   m_plotter2->add_data(m_px_py, x, y);
 }
 
+void MainWindow::play_images_until(double time)
+{
+  m_img1->play_until(time);
+  m_img2->play_until(time);
+}
+
 void MainWindow::set_img1_files(QStringList imgs)
 {
   if (imgs.empty())
@@ -442,12 +450,86 @@ void MainWindow::on_open_img2_clicked()
   emit open_img2_dir(dir);
 }
 
+void MainWindow::on_play_clicked()
+{
+  if (!m_handler)
+  {
+    qWarning() << "请先给MainWindow设置数据源";
+    return;
+  }
+
+  disable_interaction();
+
+  auto timer = QSharedPointer<QTimer>::create(this);
+  auto elapsed_timer = QSharedPointer<QElapsedTimer>::create();
+
+  auto handler = [=]()
+  {
+    auto elapsed = elapsed_timer->elapsed() / 1000.0;
+    QVector<BaseRecordPtr> records;
+    if (!m_handler(elapsed, records))
+    {
+      timer->stop();
+      enable_interaction();
+      return;
+    }
+    if (records.empty())
+    {
+      return;
+    }
+    for (const auto &record : records)
+    {
+      const auto &real_quantity = record->real_quantity();
+      const auto t = real_quantity.data(RealQuantity::Index::TIME);
+      const auto bg_x = real_quantity.data(RealQuantity::Index::BG_X);
+      const auto bg_y = real_quantity.data(RealQuantity::Index::BG_Y);
+      const auto bg_z = real_quantity.data(RealQuantity::Index::BG_Z);
+      const auto ba_x = real_quantity.data(RealQuantity::Index::BA_X);
+      const auto ba_y = real_quantity.data(RealQuantity::Index::BA_Y);
+      const auto ba_z = real_quantity.data(RealQuantity::Index::BA_Z);
+      const auto px = real_quantity.data(RealQuantity::Index::P_X);
+      const auto py = real_quantity.data(RealQuantity::Index::P_Y);
+
+      m_plotter1->add_data(m_t_bg_x, t, bg_x);
+      m_plotter1->add_data(m_t_bg_y, t, bg_y);
+      m_plotter1->add_data(m_t_bg_z, t, bg_z);
+      m_plotter1->add_data(m_t_ba_x, t, ba_x);
+      m_plotter1->add_data(m_t_ba_y, t, ba_y);
+      m_plotter1->add_data(m_t_ba_z, t, ba_z);
+      m_plotter2->add_data(m_px_py, px, py);
+    }
+    const auto t =
+        records.back()->real_quantity().data(RealQuantity::Index::TIME);
+    m_img1->play_until(t);
+    m_img2->play_until(t);
+  };
+  connect(timer.get(), &QTimer::timeout, this, handler);
+  elapsed_timer->start();
+  timer->start(1);
+}
+
 void MainWindow::reload_file(const QString &filename)
 {
   // 窗口标题
   setWindowFilePath(filename);
 
   emit open_log(filename);
+}
+
+void MainWindow::enable_interaction()
+{
+  open_log_pb->setEnabled(true);
+  open_img1_pb->setEnabled(true);
+  open_img2_pb->setEnabled(true);
+  play_pb->setEnabled(true);
+}
+
+void MainWindow::disable_interaction()
+{
+  open_log_pb->setDisabled(true);
+  open_img1_pb->setDisabled(true);
+  open_img2_pb->setDisabled(true);
+  play_pb->setDisabled(true);
 }
 
 void MainWindow::generate_samples()
